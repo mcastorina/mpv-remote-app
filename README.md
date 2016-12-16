@@ -9,7 +9,7 @@ A learning experience writing Android applications.
 
 ##Dependencies
 
-* Android
+* Android (android-tools)
 * Python 3
 
 ##Status
