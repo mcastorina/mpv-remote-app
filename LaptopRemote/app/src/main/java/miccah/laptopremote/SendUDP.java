@@ -1,6 +1,5 @@
 package miccah.laptopremote;
 
-import android.os.Bundle;
 import android.os.AsyncTask;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;

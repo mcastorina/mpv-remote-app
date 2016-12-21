@@ -24,7 +24,7 @@ install: $(TARGET)
 uninstall:
 	@adb uninstall $(PACKAGE)
 
-reinstall:
+reinstall: $(TARGET)
 	-@adb uninstall $(PACKAGE)
 	@adb install $(TARGET)
 
