@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <!-- Used for removing focus in EditText -->
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0px"
+        android:layout_height="0px" />
+
+    <EditText android:id="@+id/item_caption"
+        android:layout_height="wrap_content" android:layout_width="fill_parent"
+        android:layout_marginLeft="2dip" android:singleLine="true"
+        android:textColor="#ffffff"
+        android:textCursorDrawable="@null" />
+
+</LinearLayout>

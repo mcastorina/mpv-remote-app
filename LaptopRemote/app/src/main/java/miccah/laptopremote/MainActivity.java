@@ -1,34 +1,26 @@
 package miccah.laptopremote;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.SearchManager;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View.OnFocusChangeListener;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ListView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import java.util.ArrayList;
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View.OnFocusChangeListener;
-import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
-import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.net.wifi.WifiManager;
@@ -48,7 +40,7 @@ public class MainActivity extends Activity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setItemsCanFocus(true);
-        mDrawerList.setAdapter(new TextViewAdapter());
+        mDrawerList.setAdapter(new TextViewAdapter(this));
 
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
@@ -85,16 +77,16 @@ public class MainActivity extends Activity {
                 seekBar.setProgress(diff + start);
 
                 Toast.makeText(MainActivity.this, "Volume (" +
-                        (start + diff) + ")", 
+                        (start + diff) + ")",
                         Toast.LENGTH_SHORT).show();
 
                 /* Send UDP command until we reach appropriate volume */
                 while (diff > 0) {
-                    new SendUDP().execute("key 0");
+                    sendCommand("key 0");
                     diff -= 2;
                 }
                 while (diff < 0) {
-                    new SendUDP().execute("key 9");
+                    sendCommand("key 9");
                     diff += 2;
                 }
             }
@@ -132,9 +124,11 @@ public class MainActivity extends Activity {
 
     public class TextViewAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
+        private Activity activity;
         public ArrayList<ListItem> myItems = new ArrayList<ListItem>();
 
-        public TextViewAdapter() {
+        public TextViewAdapter(Activity a) {
+            activity = a;
             mInflater = (LayoutInflater)
                 getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -185,6 +179,24 @@ public class MainActivity extends Activity {
             holder.caption.setHint(myItems.get(position).hint);
             holder.caption.setFocusable(myItems.get(position).focusable);
             holder.caption.setId(position);
+            holder.caption.setOnEditorActionListener(
+                new TextView.OnEditorActionListener() {
+                    public boolean onEditorAction(
+                            TextView view, int actionId, KeyEvent event) {
+                        if (actionId == EditorInfo.IME_ACTION_DONE ||
+                            actionId == EditorInfo.IME_ACTION_NEXT) {
+                                view.clearFocus();
+                                View v = activity.getCurrentFocus();
+                                if (v != null) {
+                                    InputMethodManager imm = (InputMethodManager)
+                                        getSystemService(Context.INPUT_METHOD_SERVICE);
+                                    imm.hideSoftInputFromWindow(
+                                            v.getWindowToken(), 0);
+                            }
+                        }
+                        return true;
+                    }
+                });
 
             // We need to update adapter once we finish with editing
             holder.caption.setOnFocusChangeListener(new OnFocusChangeListener() {
@@ -217,15 +229,31 @@ public class MainActivity extends Activity {
     }
 
     public void playPauseButton(View view) {
-        new SendUDP().execute("key p");
+        sendCommand("key p");
     }
     public void rewindButton(View view) {
-        new SendUDP().execute("key Left");
+        sendCommand("key Left");
     }
     public void fastForwardButton(View view) {
-        new SendUDP().execute("key Right");
+        sendCommand("key Right");
     }
     public void subtitlesButton(View view) {
-        new SendUDP().execute("key v");
+        sendCommand("key v");
+    }
+
+    private void sendCommand(String cmd) {
+        try {
+            LinearLayout ll = (LinearLayout) mDrawerList.getChildAt(1);
+            String ip = ((TextView) ll.getChildAt(1)).getText().toString();
+
+            ll = (LinearLayout) mDrawerList.getChildAt(2);
+            Integer port = Integer.parseInt(
+                    ((TextView) ll.getChildAt(1)).getText().toString());
+            new SendUDP().execute(ip, port, cmd);
+        } catch (Exception e) {}
+    }
+
+    private void log(String message) {
+        new SendUDP().execute("192.168.254.22", new Integer(12345), message);
     }
 }

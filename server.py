@@ -49,19 +49,22 @@ def main():
 
     while True:
         data, addr = sock.recvfrom(1024)
-        print("Connected from %s:%s" % (addr[0], addr[1]))
+        # print("Connected from %s:%s" % (addr[0], addr[1]))
         # Ignore any commands not from receive_ip
         if addr[0] != receive_ip: continue
 
-        command, id = data.decode().split()
-        if command == 'key':
-            # key letter
-            call(['xdotool', 'key', id])
-        elif command == 'mouse_move':
-            # mouse_move x,y
-            call(['xdotool', 'mousemove_relative', '--'] + id.split(','))
-        elif command == 'mouse_click':
-            # mouse_click number
-            call(['xdotool', 'click', id])
+        try:
+            command, id = data.decode().split()
+            if command == 'key':
+                # key letter
+                call(['xdotool', 'key', id])
+            elif command == 'mouse_move':
+                # mouse_move x,y
+                call(['xdotool', 'mousemove_relative', '--'] + id.split(','))
+            elif command == 'mouse_click':
+                # mouse_click number
+                call(['xdotool', 'click', id])
+        except:
+            print("Error parsing command: %s" % data.decode())
 
 if __name__ == "__main__": main()
