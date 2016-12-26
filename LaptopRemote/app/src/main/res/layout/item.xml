@@ -10,10 +10,23 @@
         android:layout_width="0px"
         android:layout_height="0px" />
 
-    <EditText android:id="@+id/item_caption"
-        android:layout_height="wrap_content" android:layout_width="fill_parent"
-        android:layout_marginLeft="2dip" android:singleLine="true"
-        android:textColor="#ffffff"
-        android:textCursorDrawable="@null" />
+    <ViewSwitcher
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/item_switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <TextView android:id="@+id/item_textview"
+            android:layout_height="wrap_content" android:layout_width="fill_parent"
+            android:layout_marginLeft="2dip" android:singleLine="true"
+            android:textColor="#ffffff" />
+
+        <EditText android:id="@+id/item_edittext"
+            android:layout_height="wrap_content" android:layout_width="fill_parent"
+            android:layout_marginLeft="2dip" android:singleLine="true"
+            android:textColor="#ffffff"
+            android:textCursorDrawable="@null" />
+
+    </ViewSwitcher>
 
 </LinearLayout>

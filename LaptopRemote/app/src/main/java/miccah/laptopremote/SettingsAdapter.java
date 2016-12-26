@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 import android.text.format.Formatter;
 import android.net.wifi.WifiManager;
 
@@ -60,12 +61,24 @@ public class SettingsAdapter extends BaseAdapter {
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = mInflater.inflate(R.layout.item, null);
-            holder.caption = (TextView) convertView
-                .findViewById(R.id.item_caption);
+            holder.switcher = (ViewSwitcher)
+                convertView.findViewById(R.id.item_switcher);
+
+            if (myItems.get(position).focusable) {
+                if (holder.switcher.getDisplayedChild() == 0)
+                    holder.switcher.showNext();
+                holder.caption = (TextView)
+                    holder.switcher.findViewById(R.id.item_edittext);
+            }
+            else {
+                holder.caption = (TextView)
+                    holder.switcher.findViewById(R.id.item_textview);
+            }
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder)convertView.getTag();
         }
+
         // Fill TextView with the value you have in data source
         holder.caption.setText(myItems.get(position).caption);
         holder.caption.setHint(myItems.get(position).hint);
@@ -107,6 +120,7 @@ public class SettingsAdapter extends BaseAdapter {
 }
 
 class ViewHolder {
+    ViewSwitcher switcher;
     TextView caption;
 }
 

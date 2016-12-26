@@ -1,7 +1,6 @@
 package miccah.laptopremote;
 
 import android.app.Activity;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -13,7 +12,9 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.SeekBar;
+import android.widget.ViewSwitcher;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.content.res.Configuration;
 
 public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
@@ -126,17 +127,22 @@ public class MainActivity extends Activity {
 
     private void sendCommand(String cmd) {
         try {
-            LinearLayout ll = (LinearLayout) mDrawerList.getChildAt(1);
-            String ip = ((TextView) ll.getChildAt(1)).getText().toString();
+            /*
+             * FIXME: not intuitive using getChild
+             * Very dependent on SettingsAdapter
+             */
+            ViewSwitcher vs;
+            vs = (ViewSwitcher) ((LinearLayout) mDrawerList.getChildAt(1)).getChildAt(1);
+            String ip = ((TextView) vs.getChildAt(1)).getText().toString();
 
-            ll = (LinearLayout) mDrawerList.getChildAt(2);
+            vs = (ViewSwitcher) ((LinearLayout) mDrawerList.getChildAt(2)).getChildAt(1);
             Integer port = Integer.parseInt(
-                    ((TextView) ll.getChildAt(1)).getText().toString());
+                    ((TextView) vs.getChildAt(1)).getText().toString());
             new SendUDP().execute(ip, port, cmd);
         } catch (Exception e) {}
     }
 
-    private void log(String message) {
+    public static void log(String message) {
         new SendUDP().execute("192.168.254.22", new Integer(12345), message);
     }
 }

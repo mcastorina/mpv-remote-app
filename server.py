@@ -64,6 +64,8 @@ def main():
             elif command == 'mouse_click':
                 # mouse_click number
                 call(['xdotool', 'click', id])
+            else:
+                print("Unrecognized command: %s" % data.decode())
         except:
             print("Error parsing command: %s" % data.decode())
 
