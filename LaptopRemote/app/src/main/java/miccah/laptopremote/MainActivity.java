@@ -8,23 +8,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View.OnFocusChangeListener;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ListView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import java.util.ArrayList;
-import android.content.Context;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.net.wifi.WifiManager;
-import android.text.format.Formatter;
 
 public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
@@ -40,7 +29,7 @@ public class MainActivity extends Activity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setItemsCanFocus(true);
-        mDrawerList.setAdapter(new TextViewAdapter(this));
+        mDrawerList.setAdapter(new SettingsAdapter(this));
 
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
@@ -120,112 +109,6 @@ public class MainActivity extends Activity {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    public class TextViewAdapter extends BaseAdapter {
-        private LayoutInflater mInflater;
-        private Activity activity;
-        public ArrayList<ListItem> myItems = new ArrayList<ListItem>();
-
-        public TextViewAdapter(Activity a) {
-            activity = a;
-            mInflater = (LayoutInflater)
-                getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-
-            String ipAddress = null;
-            try {
-                WifiManager wifiManager = (WifiManager)
-                    getSystemService(WIFI_SERVICE);
-                ipAddress = Formatter.formatIpAddress(
-                        wifiManager.getConnectionInfo().getIpAddress());
-            } catch (Exception e) {ipAddress = "Error";}
-
-            /* Initialize list (Text, Hint, Focusable) */
-            myItems.add(new ListItem(null, "Settings", false));
-            myItems.add(new ListItem(null, "IP Address", true));
-            myItems.add(new ListItem(null, "Port", true));
-            myItems.add(new ListItem(null, null, false));
-            myItems.add(new ListItem(null, "Your IP Address", false));
-            myItems.add(new ListItem(ipAddress, null, false));
-            notifyDataSetChanged();
-        }
-
-        public int getCount() {
-            return myItems.size();
-        }
-
-        public Object getItem(int position) {
-            return position;
-        }
-
-        public long getItemId(int position) {
-            return position;
-        }
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder holder;
-            if (convertView == null) {
-                holder = new ViewHolder();
-                convertView = mInflater.inflate(R.layout.item, null);
-                holder.caption = (TextView) convertView
-                    .findViewById(R.id.item_caption);
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder)convertView.getTag();
-            }
-            // Fill TextView with the value you have in data source
-            holder.caption.setText(myItems.get(position).caption);
-            holder.caption.setHint(myItems.get(position).hint);
-            holder.caption.setFocusable(myItems.get(position).focusable);
-            holder.caption.setId(position);
-            holder.caption.setOnEditorActionListener(
-                new TextView.OnEditorActionListener() {
-                    public boolean onEditorAction(
-                            TextView view, int actionId, KeyEvent event) {
-                        if (actionId == EditorInfo.IME_ACTION_DONE ||
-                            actionId == EditorInfo.IME_ACTION_NEXT) {
-                                view.clearFocus();
-                                View v = activity.getCurrentFocus();
-                                if (v != null) {
-                                    InputMethodManager imm = (InputMethodManager)
-                                        getSystemService(Context.INPUT_METHOD_SERVICE);
-                                    imm.hideSoftInputFromWindow(
-                                            v.getWindowToken(), 0);
-                            }
-                        }
-                        return true;
-                    }
-                });
-
-            // We need to update adapter once we finish with editing
-            holder.caption.setOnFocusChangeListener(new OnFocusChangeListener() {
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus) {
-                        final int position = v.getId();
-                        final TextView Caption = (TextView)v;
-                        myItems.get(position).caption = Caption.getText().toString();
-                    }
-                }
-            });
-
-            return convertView;
-        }
-    }
-    class ViewHolder {
-        TextView caption;
-    }
-
-    class ListItem {
-        String caption;
-        String hint;
-        boolean focusable;
-
-        public ListItem(String c, String h, boolean f) {
-            caption = c;
-            hint = h;
-            focusable = f;
-        }
     }
 
     public void playPauseButton(View view) {
