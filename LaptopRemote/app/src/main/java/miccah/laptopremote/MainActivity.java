@@ -13,8 +13,13 @@ import android.widget.Toast;
 import android.widget.TextView;
 import android.widget.SeekBar;
 import android.widget.ViewSwitcher;
+import android.widget.ToggleButton;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.content.res.Configuration;
+import android.text.TextUtils;
+import java.util.HashMap;
+import java.util.ArrayList;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
@@ -52,33 +57,20 @@ public class MainActivity extends Activity {
         /* Setup volume bar */
         SeekBar volumeControl = (SeekBar)findViewById(R.id.volume_bar);
         volumeControl.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-            int start = 0;
             public void onProgressChanged(SeekBar seekBar, int progress,
                 boolean fromUser) {
             }
 
             public void onStartTrackingTouch(SeekBar seekBar) {
-                start = seekBar.getProgress();
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                int diff = seekBar.getProgress() - start;
-                diff &= ~1; // Make diff an even number
-                seekBar.setProgress(diff + start);
-
                 Toast.makeText(MainActivity.this, "Volume (" +
-                        (start + diff) + ")",
+                        seekBar.getProgress() + ")",
                         Toast.LENGTH_SHORT).show();
 
-                /* Send UDP command until we reach appropriate volume */
-                while (diff > 0) {
-                    sendCommand("key 0");
-                    diff -= 2;
-                }
-                while (diff < 0) {
-                    sendCommand("key 9");
-                    diff += 2;
-                }
+                setProperty("volume", seekBar.getProgress());
+                showProperty("volume", null, "%");
             }
         });
     }
@@ -108,24 +100,52 @@ public class MainActivity extends Activity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // Pass any configuration change to the drawer toggls
+        // Pass any configuration change to the drawer toggle
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     public void playPauseButton(View view) {
-        sendCommand("key p");
+        sendCommand("cycle pause");
     }
     public void rewindButton(View view) {
-        sendCommand("key Left");
+        sendCommand("seek", "-5");
     }
     public void fastForwardButton(View view) {
-        sendCommand("key Right");
+        sendCommand("seek", "5");
     }
     public void subtitlesButton(View view) {
-        sendCommand("key v");
+        ToggleButton button = (ToggleButton)view;
+        setProperty("sub", button.isChecked() ? 1 : 0);
     }
 
-    private void sendCommand(String cmd) {
+    private void sendCommand(String command, String ... args) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", command);
+        map.put("args", args);
+        send(new JSONObject(map).toString());
+    }
+    private Object getProperty(String property) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", "get");
+        map.put("property", property);
+        return sendrecv(new JSONObject(map).toString());
+    }
+    private void setProperty(String property, Object value) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", "set");
+        map.put("property", property);
+        map.put("value", value);
+        send(new JSONObject(map).toString());
+    }
+    private void showProperty(String property, String pre, String post) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", "show");
+        map.put("property", property);
+        map.put("pre", pre);
+        map.put("post", post);
+        send(new JSONObject(map).toString());
+    }
+    private Object udp(String cmd, UDPPacket.Task task) {
         try {
             /*
              * FIXME: not intuitive using getChild
@@ -138,11 +158,19 @@ public class MainActivity extends Activity {
             vs = (ViewSwitcher) ((LinearLayout) mDrawerList.getChildAt(2)).getChildAt(1);
             Integer port = Integer.parseInt(
                     ((TextView) vs.getChildAt(1)).getText().toString());
-            new SendUDP().execute(ip, port, cmd);
+            /* FIXME: get() blocks UI thread */
+            return new UDPPacket().execute(task, ip, port, cmd).get();
         } catch (Exception e) {}
+        return null;
+    }
+    private Object send(String cmd) {
+        return udp(cmd, UDPPacket.Task.SEND);
+    }
+    private Object sendrecv(String cmd) {
+        return udp(cmd, UDPPacket.Task.SENDRECV);
     }
 
     public static void log(String message) {
-        new SendUDP().execute("192.168.254.22", new Integer(12345), message);
+        new UDPPacket().execute(UDPPacket.Task.SEND, "192.168.254.22", new Integer(12345), message);
     }
 }

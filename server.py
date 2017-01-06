@@ -1,11 +1,21 @@
 #!/usr/bin/python3
 
-import socket
 import sys
+import json
 import signal
-from subprocess import call
+import socket
+import subprocess
 
+# Unix socket used to communicate with mpv
+# mpv needs to be started with the flag --input-ipc-server SOCKET
+SOCKET = "/tmp/mpvsocket"
+
+# UDP socket to communicate with app
 sock = None
+
+# Whitelist for commands (besides get / set / show property)
+COMMAND_WHITELIST = ["seek", "show_text", "cycle pause"]
+
 
 # Usage message
 def print_help():
@@ -22,6 +32,48 @@ def cleanup(signal, frame):
     global sock
     sock.close()
     sys.exit(0)
+
+# Run command and return (exit code, stdout)
+def call(args):
+    child = subprocess.Popen(' '.join(args), shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = child.communicate()
+    ret = child.poll()
+    return (ret, stdout.decode().strip())
+
+# Send message to mpv (on sock) via socat
+def socat(command, sock=SOCKET):
+    ret, out = call(["echo", "'%s'" % command, '|', "socat", "-", sock])
+    return out
+
+# Get the property from the mpv listening on sock
+def get_property(property, sock=SOCKET):
+    cmd = json.dumps({"command": ["get_property", property]})
+    out = json.loads(socat(cmd, sock))
+    if out["error"] != "success":
+        return None
+    return out["data"]
+
+# Set the property on the mpv listening on sock
+def set_property(property, value, sock=SOCKET):
+    cmd = json.dumps({"command": ["set_property", property, value]})
+    out = json.loads(socat(cmd, sock))
+    if out["error"] != "success":
+        return False
+    return True
+
+# Show the property (on OSD) on the mpv listening on sock
+def show_property(property, pre=None, post="", sock=SOCKET):
+    if pre is None:
+        pre = property.title() + ": "
+    arg = "\"%s${%s}%s\"" % (pre, property, post)
+    return send_command("show_text", [arg], sock)
+
+# Sends command to mpv listening on sock
+def send_command(command, args, sock=SOCKET):
+    args = [str(arg) for arg in args]
+    cmd = "%s %s" % (command, ' '.join(args))
+    return socat(cmd)
 
 def main():
     global sock
@@ -49,24 +101,31 @@ def main():
 
     while True:
         data, addr = sock.recvfrom(1024)
-        # print("Connected from %s:%s" % (addr[0], addr[1]))
-        # Ignore any commands not from receive_ip
-        if addr[0] != receive_ip: continue
-
         try:
-            command, id = data.decode().split()
-            if command == 'key':
-                # key letter
-                call(['xdotool', 'key', id])
-            elif command == 'mouse_move':
-                # mouse_move x,y
-                call(['xdotool', 'mousemove_relative', '--'] + id.split(','))
-            elif command == 'mouse_click':
-                # mouse_click number
-                call(['xdotool', 'click', id])
+            data = json.loads(data.decode())
+            # print("Connected from %s:%s" % (addr[0], addr[1]))
+            # Ignore any commands not from receive_ip
+            if addr[0] != receive_ip: continue
+
+            if data["command"] == 'get':
+                # get property and send it back
+                out = get_property(data["property"])
+                sock.sendto(out.encode(), addr)
+            elif data["command"] == 'set':
+                # set a single property
+                out = set_property(data["property"], data["value"])
+                if out == False:
+                    print("Error setting property: %s = %s" %
+                            (data["property"], data["value"]))
+            elif data["command"] == 'show':
+                # show a property
+                show_property(data["property"], data["pre"], data["post"])
             else:
-                print("Unrecognized command: %s" % data.decode())
+                if data["command"] not in COMMAND_WHITELIST:
+                    print("Command not in whitelist: %s" % data)
+                    continue
+                send_command(data["command"], data["args"])
         except:
-            print("Error parsing command: %s" % data.decode())
+            print("Error parsing command: %s" % data)
 
 if __name__ == "__main__": main()

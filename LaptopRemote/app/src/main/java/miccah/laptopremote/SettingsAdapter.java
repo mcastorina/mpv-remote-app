@@ -36,7 +36,9 @@ public class SettingsAdapter extends BaseAdapter {
 
         /* Initialize list (Text, Hint, Focusable) */
         myItems.add(new ListItem(null, "Settings", false));
-        myItems.add(new ListItem(null, "IP Address", true));
+        myItems.add(new ListItem(
+                    ipAddress.substring(0, ipAddress.lastIndexOf('.')+1),
+                    "IP Address", true));
         myItems.add(new ListItem(null, "Port", true));
         myItems.add(new ListItem(null, null, false));
         myItems.add(new ListItem(null, "Your IP Address", false));
