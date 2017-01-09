@@ -26,6 +26,10 @@ public class MainActivity extends Activity {
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
+    public String ipAddress;
+    public String port;
+    public String passwd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,20 +126,20 @@ public class MainActivity extends Activity {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
         map.put("args", args);
-        send(new JSONObject(map).toString());
+        send(map);
     }
-    private Object getProperty(String property) {
+    private void getProperty(String property) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", "get");
         map.put("property", property);
-        return sendrecv(new JSONObject(map).toString());
+        send(map);
     }
     private void setProperty(String property, Object value) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", "set");
         map.put("property", property);
         map.put("value", value);
-        send(new JSONObject(map).toString());
+        send(map);
     }
     private void showProperty(String property, String pre, String post) {
         HashMap<String, Object> map = new HashMap<String, Object>();
@@ -143,34 +147,12 @@ public class MainActivity extends Activity {
         map.put("property", property);
         map.put("pre", pre);
         map.put("post", post);
-        send(new JSONObject(map).toString());
+        send(map);
     }
-    private Object udp(String cmd, UDPPacket.Task task) {
+    private void send(HashMap<String, Object> cmd) {
         try {
-            /*
-             * FIXME: not intuitive using getChild
-             * Very dependent on SettingsAdapter
-             */
-            ViewSwitcher vs;
-            vs = (ViewSwitcher) ((LinearLayout) mDrawerList.getChildAt(1)).getChildAt(1);
-            String ip = ((TextView) vs.getChildAt(1)).getText().toString();
-
-            vs = (ViewSwitcher) ((LinearLayout) mDrawerList.getChildAt(2)).getChildAt(1);
-            Integer port = Integer.parseInt(
-                    ((TextView) vs.getChildAt(1)).getText().toString());
-            /* FIXME: get() blocks UI thread */
-            return new UDPPacket().execute(task, ip, port, cmd).get();
+            new UDPPacket(MainActivity.this,
+                    ipAddress, Integer.parseInt(port), passwd).execute(cmd);
         } catch (Exception e) {}
-        return null;
-    }
-    private Object send(String cmd) {
-        return udp(cmd, UDPPacket.Task.SEND);
-    }
-    private Object sendrecv(String cmd) {
-        return udp(cmd, UDPPacket.Task.SENDRECV);
-    }
-
-    public static void log(String message) {
-        new UDPPacket().execute(UDPPacket.Task.SEND, "192.168.254.22", new Integer(12345), message);
     }
 }

@@ -1,52 +1,103 @@
 package miccah.laptopremote;
 
 import android.os.AsyncTask;
+// import android.widget.Toast;
+import android.content.Context;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.InetAddress;
+import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import org.json.JSONObject;
 
 public class UDPPacket extends AsyncTask {
 
-    public static enum Task {SEND, SENDRECV};
+    private static final int MAX_RETRIES = 3;       // max number of sends
+    private static final int ACK_TIMEOUT = 1000;    // milliseconds
+
+    private Context context;
+    private String ip;
+    private Integer port;
+    private String password;
+    private String response;
+
+    public UDPPacket(Context c, String ip, Integer port, String pass) {
+        this.context = c;
+        this.ip = ip;
+        this.port = port;
+        this.password = pass;
+    }
 
     protected Object doInBackground(Object... objects) {
-        Task task = (Task)objects[0];
-        return send((String)objects[1],
-                    (Integer)objects[2],
-                    (String)objects[3],
-                    task == Task.SENDRECV);
+        // Expected inputs:
+        //      Map<String, Object> message
+        // Build message {"hmac": hmac, "message": message}
+        HashMap<String, Object> map = (HashMap<String, Object>)objects[0];
+        if (map == null) {
+            send(ip, port, (String)objects[1]);
+            return "";
+        }
+
+        // Add timestamp
+        long time = System.currentTimeMillis();
+        map.put("time", time);
+        String message = new JSONObject(map).toString();
+
+        map = new HashMap<String, Object>();
+        map.put("hmac", new HMAC(password + time, message).digest());
+        map.put("message", message);
+
+        send(ip, port, new JSONObject(map).toString());
+        return response;
+    }
+    protected void onPostExecute(Object result) {
+        // Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show();
     }
 
-    private Object send(String ip, Integer port, String message, boolean recv) {
-        Object ret;
+    private boolean send(String ip, Integer port, String message) {
+        boolean ret = false;
+        int count = 0;
         try {
-            DatagramSocket datagramSocket = new DatagramSocket();
+            while (!ret && count < MAX_RETRIES) {
+                DatagramSocket datagramSocket = new DatagramSocket();
 
-            byte[] buffer = message.getBytes();
-            InetAddress receiverAddress =
-                InetAddress.getByName(ip);
+                byte[] buffer = message.getBytes();
+                InetAddress receiverAddress =
+                    InetAddress.getByName(ip);
 
-            DatagramPacket packet = new DatagramPacket(
-                    buffer, buffer.length, receiverAddress, port);
-            datagramSocket.send(packet);
-            if (recv) ret = recv(datagramSocket);
-            else      ret = true;
-            datagramSocket.disconnect();
+                DatagramPacket packet = new DatagramPacket(
+                        buffer, buffer.length, receiverAddress, port);
+                datagramSocket.send(packet);
+                ret = recv(datagramSocket);
+                datagramSocket.disconnect();
+
+                count++;
+            }
         }
-        catch (Exception e) {ret = false;};
+        catch (Exception e) {ret = false;}
         return ret;
     }
-    private Object recv(DatagramSocket sock) {
+    private boolean recv(DatagramSocket sock) {
         try {
             byte[] buffer = new byte[1500];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            sock.receive(packet);
-            return new String(buffer, 0, packet.getLength());
-        }
-        catch (Exception e) {}
-        return null;
-    }
+            sock.setSoTimeout(ACK_TIMEOUT);
+            sock.receive(packet);       // Blocks for ACK_TIMEOUT ms
 
-    protected void onPostExecute(Object result) {
+            response = new String(buffer, 0, packet.getLength());
+            // Check response
+            JSONObject obj = new JSONObject(response);
+            String message = obj.getString("message");
+            String hmac = obj.getString("hmac");
+            JSONObject mobj = new JSONObject(message);
+
+            return mobj.getString("action").equals("ACK") &&
+               new HMAC(password + mobj.getLong("time"),
+                        message).digest().equals(hmac);
+        }
+        catch (SocketTimeoutException e) {}
+        catch (Exception e) {}
+        return false;
     }
 }
