@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# FIXME: make a proper state machine
 
 import sys
 import json
@@ -6,6 +7,7 @@ import time
 import hmac
 import signal
 import socket
+import select
 import subprocess
 from collections import deque
 
@@ -81,7 +83,7 @@ def show_property(property, pre=None, post="", sock=SOCKET):
             pre = property.title() + ": "
         arg = "\"%s${%s}%s\"" % (pre, property, post)
         return send_command("show_text", [arg], sock)
-    except: return False
+    except: return None
 
 # Sends command to mpv listening on sock
 def send_command(command, args, sock=SOCKET):
@@ -90,6 +92,31 @@ def send_command(command, args, sock=SOCKET):
         cmd = "%s %s" % (command, ' '.join(args))
         return socat(cmd)
     except: return False
+
+# Repeats a command until receiving a stop command
+def repeat(command, delay):
+    global sock
+    global password
+
+    sock.setblocking(False)
+    data = None
+    send_command(command[0], command[1:])
+    while True:
+        ready = select.select([sock], [], [], delay/1000)
+        if ready[0]:
+            data, addr = sock.recvfrom(1024)
+        else:
+            send_command(command[0], command[1:])
+            continue
+        data = json.loads(data.decode())
+        if auth(data, password) == False: continue
+        data = json.loads(data["message"])
+        print(data)
+        if data["command"] == 'stop':
+            break
+        ack(addr, data["time"], (False, "Waiting for stop"))
+    ack(addr, data["time"], (True, "Stopping"))
+    sock.setblocking(True)
 
 def auth(data, passwd):
     # data should contain "hmac" and "message"
@@ -101,35 +128,62 @@ def auth(data, passwd):
         return data["hmac"].lower() == h.lower()
     except: return False
 
-def ack(addr, response):
+def ack(addr, action, response):
     global sock
     global password
+
+    # Check if action in history
+    try:
+        index = [x[0] for x in history].index(action)
+        # Data is in history, resend ACK
+        response = history[index][1]
+    except:
+        # Not found
+        while (len(history) > HISTORY_SIZE): history.popleft()
+        history.append((action, response))
+
     t = round(time.time() * 1000)
-    msg = json.dumps({"action": "ACK", "result": response, "time": t})
+    msg = json.dumps({"action": action, "time": t,
+                      "result": response[0], "message": response[1]})
+    print("ACK", msg)
     h = hmac.new((password + str(t)).encode(), msg.encode()).hexdigest()
     sock.sendto(json.dumps({"hmac": h, "message": msg}).encode(), addr)
 
-def parse_data(data):
+def parse_data(addr, data):
     # Parse Command
-    out = None
-    if data["command"] == 'get':
-        # get property and send it back
-        out = get_property(data["property"])
-    elif data["command"] == 'set':
-        # set a single property
-        out = set_property(data["property"], data["value"])
-        if out == False:
-            print("Error setting property: %s = %s" %
-                    (data["property"], data["value"]))
-    elif data["command"] == 'show':
-        # show a property
-        out = show_property(data["property"], data["pre"], data["post"])
-    else:
-        if data["command"] not in COMMAND_WHITELIST:
-            print("Command not in whitelist: %s" % data)
-            out = False
+    out = (False, None)
+    try:
+        if data["command"] == 'get':
+            # get property and send it back
+            out = get_property(data["property"])
+            out = (out != None, out)
+        elif data["command"] == 'set':
+            # set a single property
+            out = set_property(data["property"], data["value"])
+            if out == False:
+                print("Error setting property: %s = %s" %
+                        (data["property"], data["value"]))
+            out = (out, None)
+        elif data["command"] == 'show':
+            # show a property
+            out = show_property(data["property"], data["pre"], data["post"])
+            out = (out != None, out)
+        elif data["command"] == 'repeat':
+            # ACK command
+            ack(addr, data["time"], (True, "Repeating"))
+            # repeat command until we receive a stop command
+            # out = repeat(data["args"], data["delay"])
+            # FIXME: use data["delay"]
+            repeat(data["args"], 100)
+            out = (True, "Repeat completed")
         else:
-            out = send_command(data["command"], data["args"])
+            if data["command"] not in COMMAND_WHITELIST:
+                print("Command not in whitelist: %s" % data)
+                out = (False, "Command not allowed")
+            else:
+                out = send_command(data["command"], data["args"])
+                out = (out != None, out)
+    except: pass
     return out
 
 def main():
@@ -163,19 +217,10 @@ def main():
             data = json.loads(data["message"])
             print(data)
 
-            # Check if data["time"] in history
-            try:
-                index = [x[0] for x in history].index(data["time"])
-                # Data is in history
-                # Resend ACK message
-                ack(addr, history[index][1])
-            except:
-                # Not found
-                ret = parse_data(data)
-                while (len(history) > HISTORY_SIZE): history.popleft()
-                history.append((data["time"], ret))
-                # Send ACK
-                ack(addr, ret)
+            ret = None
+            if data["time"] not in [x[0] for x in history]:
+                ret = parse_data(addr, data)
+            ack(addr, data["time"], ret)
         except:
             print("Error parsing command: %s" % data)
 

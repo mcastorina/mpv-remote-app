@@ -17,8 +17,8 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context="com.miccah.laptopremote.MainActivity">
 
-        <Button
-            android:text="||&gt;"
+        <miccah.laptopremote.BackgroundImageButton
+            android:src="@android:drawable/ic_media_play"
             android:layout_height="64dp"
             android:id="@+id/play_pause"
             android:layout_marginBottom="92dp"
@@ -27,8 +27,8 @@
             android:layout_centerHorizontal="true"
             android:onClick="playPauseButton" />
 
-        <Button
-            android:text="&lt;"
+        <ImageButton
+            android:src="@android:drawable/ic_media_rew"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/play_pause"
@@ -39,8 +39,8 @@
             android:layout_alignParentStart="true"
             android:onClick="rewindButton" />
 
-        <Button
-            android:text="&gt;"
+        <ImageButton
+            android:src="@android:drawable/ic_media_ff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/play_pause"

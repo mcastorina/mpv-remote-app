@@ -134,15 +134,15 @@ public class SettingsAdapter extends BaseAdapter {
         String value = view.getText().toString();
         if (hint.equals(myItems.get(1).hint)) {
             // IP Address
-            activity.ipAddress = value;
+            activity.setIPAddress(value);
         }
         else if (hint.equals(myItems.get(2).hint)) {
             // Port
-            activity.port = value;
+            activity.setPort(Integer.parseInt(value));
         }
         else if (hint.equals(myItems.get(4).hint)) {
             // Password
-            activity.passwd = value;
+            activity.setPassword(value);
         }
     }
 }

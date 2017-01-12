@@ -1,8 +1,6 @@
 package miccah.laptopremote;
 
 import android.os.AsyncTask;
-// import android.widget.Toast;
-import android.content.Context;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -14,29 +12,28 @@ import org.json.JSONObject;
 public class UDPPacket extends AsyncTask {
 
     private static final int MAX_RETRIES = 3;       // max number of sends
-    private static final int ACK_TIMEOUT = 1000;    // milliseconds
+    private static final int ACK_TIMEOUT = 800;     // milliseconds
 
-    private Context context;
     private String ip;
     private Integer port;
     private String password;
     private String response;
+    private Callback cb;
 
-    public UDPPacket(Context c, String ip, Integer port, String pass) {
-        this.context = c;
+    public UDPPacket(String ip, Integer port, String pass, Callback cb) {
         this.ip = ip;
         this.port = port;
         this.password = pass;
+        this.cb = cb;
     }
 
-    protected Object doInBackground(Object... objects) {
+    protected Boolean doInBackground(Object... objects) {
         // Expected inputs:
         //      Map<String, Object> message
         // Build message {"hmac": hmac, "message": message}
         HashMap<String, Object> map = (HashMap<String, Object>)objects[0];
         if (map == null) {
-            send(ip, port, (String)objects[1]);
-            return "";
+            return send(ip, port, (String)objects[1], 0);
         }
 
         // Add timestamp
@@ -44,18 +41,22 @@ public class UDPPacket extends AsyncTask {
         map.put("time", time);
         String message = new JSONObject(map).toString();
 
+        // Construct hmac and message object
         map = new HashMap<String, Object>();
         map.put("hmac", new HMAC(password + time, message).digest());
         map.put("message", message);
 
-        send(ip, port, new JSONObject(map).toString());
-        return response;
+        return send(ip, port, new JSONObject(map).toString(), time);
     }
     protected void onPostExecute(Object result) {
-        // Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show();
+        if (cb != null) {
+            try {
+                cb.callback((Boolean)result, new JSONObject(response));
+            } catch (Exception e) {cb.callback((Boolean)result, null);}
+        }
     }
 
-    private boolean send(String ip, Integer port, String message) {
+    private boolean send(String ip, Integer port, String message, long ts) {
         boolean ret = false;
         int count = 0;
         try {
@@ -69,7 +70,7 @@ public class UDPPacket extends AsyncTask {
                 DatagramPacket packet = new DatagramPacket(
                         buffer, buffer.length, receiverAddress, port);
                 datagramSocket.send(packet);
-                ret = recv(datagramSocket);
+                ret = recv(datagramSocket, ts);
                 datagramSocket.disconnect();
 
                 count++;
@@ -78,7 +79,7 @@ public class UDPPacket extends AsyncTask {
         catch (Exception e) {ret = false;}
         return ret;
     }
-    private boolean recv(DatagramSocket sock) {
+    private boolean recv(DatagramSocket sock, long timestamp) {
         try {
             byte[] buffer = new byte[1500];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -92,9 +93,13 @@ public class UDPPacket extends AsyncTask {
             String hmac = obj.getString("hmac");
             JSONObject mobj = new JSONObject(message);
 
-            return mobj.getString("action").equals("ACK") &&
-               new HMAC(password + mobj.getLong("time"),
-                        message).digest().equals(hmac);
+            boolean done = mobj.getLong("action") == timestamp &&
+                               new HMAC(password + mobj.getLong("time"),
+                               message).digest().equals(hmac);
+            if (done) {
+                response = message;
+            }
+            return done;
         }
         catch (SocketTimeoutException e) {}
         catch (Exception e) {}

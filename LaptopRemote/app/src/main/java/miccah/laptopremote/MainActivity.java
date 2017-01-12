@@ -7,6 +7,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.MotionEvent;
 import android.widget.ListView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -14,9 +15,11 @@ import android.widget.TextView;
 import android.widget.SeekBar;
 import android.widget.ViewSwitcher;
 import android.widget.ToggleButton;
+import android.widget.ImageButton;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.content.res.Configuration;
 import android.text.TextUtils;
+import android.graphics.LightingColorFilter;
 import java.util.HashMap;
 import java.util.ArrayList;
 import org.json.JSONObject;
@@ -26,9 +29,9 @@ public class MainActivity extends Activity {
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
-    public String ipAddress;
-    public String port;
-    public String passwd;
+    private String ipAddress;
+    private Integer port;
+    private String passwd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,14 +72,41 @@ public class MainActivity extends Activity {
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(MainActivity.this, "Volume (" +
-                        seekBar.getProgress() + ")",
-                        Toast.LENGTH_SHORT).show();
-
-                setProperty("volume", seekBar.getProgress());
+                setProperty(null, "volume", seekBar.getProgress());
                 showProperty("volume", null, "%");
             }
         });
+
+        /* Setup FF / REW */
+        ((ImageButton)findViewById(R.id.fast_forward)).
+            setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        sendCommand(null, "repeat", "seek", "2");
+                    }
+                    else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        sendCommand(null, "stop");
+                    }
+                    return false;
+                }
+        });
+        ((ImageButton)findViewById(R.id.rewind)).
+            setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        sendCommand(null, "repeat", "seek", "-2");
+                    }
+                    else if (event.getAction() == MotionEvent.ACTION_UP) {
+                        sendCommand(null, "stop");
+                    }
+                    return false;
+                }
+        });
+
+        /* Setup BackgroundImageButton drawable states */
+        ((BackgroundImageButton)findViewById(R.id.play_pause)).
+            setDrawables(android.R.drawable.ic_media_play,
+                         android.R.drawable.ic_media_pause);
     }
 
     @Override
@@ -109,37 +139,50 @@ public class MainActivity extends Activity {
     }
 
     public void playPauseButton(View view) {
-        sendCommand("cycle pause");
+        BackgroundImageButton button = (BackgroundImageButton)view;
+        button.setProperty("pause", button.getState());
     }
     public void rewindButton(View view) {
-        sendCommand("seek", "-5");
+        // sendCommand(null, "seek", "-5");
     }
     public void fastForwardButton(View view) {
-        sendCommand("seek", "5");
+        // sendCommand(null, "seek", "5");
     }
     public void subtitlesButton(View view) {
         ToggleButton button = (ToggleButton)view;
-        setProperty("sub", button.isChecked() ? 1 : 0);
+        setProperty(null, "sub", button.isChecked() ? 1 : 0);
     }
 
-    private void sendCommand(String command, String ... args) {
+    public void setIPAddress(String val) {
+        this.ipAddress = val;
+        updateButtons();
+    }
+    public void setPort(Integer val) {
+        this.port = val;
+        updateButtons();
+    }
+    public void setPassword(String val) {
+        this.passwd = val;
+        updateButtons();
+    }
+
+    private void updateButtons() {
+        /* Call setSettings on each BackgroundImageButton */
+        ((BackgroundImageButton)findViewById(R.id.play_pause)).
+            setSettings(ipAddress, port, passwd);
+    }
+    private void sendCommand(Callback cb, String command, String ... args) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
         map.put("args", args);
-        send(map);
+        send(map, cb);
     }
-    private void getProperty(String property) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("command", "get");
-        map.put("property", property);
-        send(map);
-    }
-    private void setProperty(String property, Object value) {
+    private void setProperty(Callback cb, String property, Object value) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", "set");
         map.put("property", property);
         map.put("value", value);
-        send(map);
+        send(map, cb);
     }
     private void showProperty(String property, String pre, String post) {
         HashMap<String, Object> map = new HashMap<String, Object>();
@@ -147,12 +190,15 @@ public class MainActivity extends Activity {
         map.put("property", property);
         map.put("pre", pre);
         map.put("post", post);
-        send(map);
+        send(map, null);
     }
-    private void send(HashMap<String, Object> cmd) {
+    private void send(HashMap<String, Object> cmd, Callback cb) {
         try {
-            new UDPPacket(MainActivity.this,
-                    ipAddress, Integer.parseInt(port), passwd).execute(cmd);
-        } catch (Exception e) {}
+            new UDPPacket(ipAddress, port, passwd, cb).execute(cmd);
+        } catch (Exception e) {
+            Toast.makeText(MainActivity.this, "Please check settings",
+                    Toast.LENGTH_SHORT).show();
+            if (cb != null) cb.callback(false, null);
+        }
     }
 }
