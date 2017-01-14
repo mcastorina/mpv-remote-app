@@ -8,6 +8,7 @@ import hmac
 import signal
 import socket
 import select
+import threading
 import subprocess
 from collections import deque
 
@@ -93,30 +94,23 @@ def send_command(command, args, sock=SOCKET):
         return socat(cmd)
     except: return False
 
-# Repeats a command until receiving a stop command
-def repeat(command, delay):
+# Waits delay (ms) on sock and returns (data, addr) or None
+# If delay is None, then this function will block
+def recv(delay=None):
     global sock
     global password
 
     sock.setblocking(False)
-    data = None
-    send_command(command[0], command[1:])
-    while True:
-        ready = select.select([sock], [], [], delay/1000)
-        if ready[0]:
-            data, addr = sock.recvfrom(1024)
-        else:
-            send_command(command[0], command[1:])
-            continue
-        data = json.loads(data.decode())
-        if auth(data, password) == False: continue
-        data = json.loads(data["message"])
-        print(data)
-        if data["command"] == 'stop':
-            break
-        ack(addr, data["time"], (False, "Waiting for stop"))
-    ack(addr, data["time"], (True, "Stopping"))
+    ret = None
+
+    if delay is None: ready = select.select([sock], [], []) # Blocking
+    else: ready = select.select([sock], [], [], delay/1000) # Non-blocking
+
+    if ready[0]:
+        ret = sock.recvfrom(1024)
+
     sock.setblocking(True)
+    return ret
 
 def auth(data, passwd):
     # data should contain "hmac" and "message"
@@ -149,7 +143,7 @@ def ack(addr, action, response):
     h = hmac.new((password + str(t)).encode(), msg.encode()).hexdigest()
     sock.sendto(json.dumps({"hmac": h, "message": msg}).encode(), addr)
 
-def parse_data(addr, data):
+def parse_data(data):
     # Parse Command
     out = (False, None)
     try:
@@ -168,14 +162,6 @@ def parse_data(addr, data):
             # show a property
             out = show_property(data["property"], data["pre"], data["post"])
             out = (out != None, out)
-        elif data["command"] == 'repeat':
-            # ACK command
-            ack(addr, data["time"], (True, "Repeating"))
-            # repeat command until we receive a stop command
-            # out = repeat(data["args"], data["delay"])
-            # FIXME: use data["delay"]
-            repeat(data["args"], 100)
-            out = (True, "Repeat completed")
         else:
             if data["command"] not in COMMAND_WHITELIST:
                 print("Command not in whitelist: %s" % data)
@@ -185,6 +171,30 @@ def parse_data(addr, data):
                 out = (out != None, out)
     except: pass
     return out
+
+def state_0(data):
+    global repeat_done
+    if data["command"] == 'repeat':
+        repeat_done = False
+        threading.Thread(target=repeat, args=[data], daemon=True).start()
+        return (state_1, (True, "Repeating"))
+    return (state_0, parse_data(data))
+
+def state_1(data):
+    global repeat_done
+    if data["command"] == 'stop':
+        # Kill thread
+        repeat_done = True
+        return (state_0, (True, "Stopping"))
+    return (state_1, (False, "Waiting for stop"))
+
+def repeat(data):
+    args = data["args"]
+    delay = 100
+    if 'delay' in data: delay = data["delay"]
+    while not repeat_done:
+        send_command(args[0], args[1:])
+        time.sleep(delay/1000)
 
 def main():
     global sock
@@ -206,6 +216,8 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('0.0.0.0', server_port))
 
+    state = state_0
+
     while True:
         data, addr = sock.recvfrom(1024)
         try:
@@ -219,7 +231,7 @@ def main():
 
             ret = None
             if data["time"] not in [x[0] for x in history]:
-                ret = parse_data(addr, data)
+                state, ret = state(data)
             ack(addr, data["time"], ret)
         except:
             print("Error parsing command: %s" % data)
