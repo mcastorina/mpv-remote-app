@@ -64,7 +64,7 @@
             android:progress="100"
             style="@android:style/Widget.Material.SeekBar.Discrete" />
 
-        <ToggleButton
+        <miccah.laptopremote.BackgroundToggleButton
             android:text="Subtitles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

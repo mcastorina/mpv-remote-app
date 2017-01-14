@@ -82,7 +82,7 @@ public class MainActivity extends Activity {
             setOnTouchListener(new View.OnTouchListener() {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        sendCommand(null, "repeat", "seek", "2");
+                        sendCommand(null, "repeat", "seek", "5");
                     }
                     else if (event.getAction() == MotionEvent.ACTION_UP) {
                         sendCommand(null, "stop");
@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
             setOnTouchListener(new View.OnTouchListener() {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        sendCommand(null, "repeat", "seek", "-2");
+                        sendCommand(null, "repeat", "seek", "-5");
                     }
                     else if (event.getAction() == MotionEvent.ACTION_UP) {
                         sendCommand(null, "stop");
@@ -149,8 +149,8 @@ public class MainActivity extends Activity {
         // sendCommand(null, "seek", "5");
     }
     public void subtitlesButton(View view) {
-        ToggleButton button = (ToggleButton)view;
-        setProperty(null, "sub", button.isChecked() ? 1 : 0);
+        BackgroundToggleButton button = (BackgroundToggleButton)view;
+        button.setProperty("sub", button.isChecked() ? 1 : 0);
     }
 
     public void setIPAddress(String val) {
@@ -167,8 +167,10 @@ public class MainActivity extends Activity {
     }
 
     private void updateButtons() {
-        /* Call setSettings on each BackgroundImageButton */
+        /* Call setSettings on each BackgroundWidget */
         ((BackgroundImageButton)findViewById(R.id.play_pause)).
+            setSettings(ipAddress, port, passwd);
+        ((BackgroundToggleButton)findViewById(R.id.subtitles)).
             setSettings(ipAddress, port, passwd);
     }
     private void sendCommand(Callback cb, String command, String ... args) {
