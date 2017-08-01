@@ -17,6 +17,7 @@ import android.widget.ViewSwitcher;
 import android.widget.ToggleButton;
 import android.widget.ImageButton;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.graphics.LightingColorFilter;
@@ -138,15 +139,15 @@ public class MainActivity extends Activity {
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
+    public void libraryButton(View view) {
+        Toast.makeText(MainActivity.this, "Coming Soon!",
+            Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, LibraryActivity.class);
+        startActivity(intent);
+    }
     public void playPauseButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
         button.setProperty("pause", button.getState());
-    }
-    public void rewindButton(View view) {
-        // sendCommand(null, "seek", "-5");
-    }
-    public void fastForwardButton(View view) {
-        // sendCommand(null, "seek", "5");
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;

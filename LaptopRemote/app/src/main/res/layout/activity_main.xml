@@ -36,8 +36,7 @@
             android:id="@+id/rewind"
             android:layout_alignTop="@+id/play_pause"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:onClick="rewindButton" />
+            android:layout_alignParentStart="true" />
 
         <ImageButton
             android:src="@android:drawable/ic_media_ff"
@@ -48,8 +47,7 @@
             android:id="@+id/fast_forward"
             android:layout_alignBottom="@+id/play_pause"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:onClick="fastForwardButton" />
+            android:layout_alignParentEnd="true" />
 
         <SeekBar
             android:layout_width="wrap_content"
@@ -77,6 +75,16 @@
             android:textOff="Subtitles"
             android:onClick="subtitlesButton"
             android:checked="true" />
+
+        <Button
+            android:text="Library"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:id="@+id/library"
+            android:onClick="libraryButton"
+            android:layout_marginBottom="157dp"
+            android:layout_above="@+id/play_pause"
+            android:layout_centerHorizontal="true" />
 
     </RelativeLayout>
 

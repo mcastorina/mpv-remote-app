@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # FIXME: make a proper state machine
 
+import os
 import sys
 import json
 import time
@@ -8,18 +9,22 @@ import hmac
 import signal
 import socket
 import select
+import argparse
 import threading
 import subprocess
 from collections import deque
 
 # Unix socket used to communicate with mpv
-# mpv needs to be started with the flag --input-ipc-server SOCKET
-SOCKET = "/tmp/mpvsocket"
+# mpv needs to be started with the flag --input-ipc-server mpv_socket
+mpv_socket = "/tmp/mpvsocket"
+
+# Base address for file browsing
+ROOT_DIR = None
 
 # UDP socket to communicate with app
 sock = None
 # Password for the server
-password = None
+server_password = None
 # History of commands
 history = deque()
 # Max size of history
@@ -30,14 +35,13 @@ COMMAND_WHITELIST = ["seek", "show_text", "cycle pause"]
 
 
 # Usage message
-def print_help():
-    print(
-        "Usage: %s PORT PASSWORD\r\n\r\n"
-        "Listens on PORT for UDP commands to execute shell scripts\r\n\r\n"
-        "PASSWORD sets the password of this server and must be used\r\n"
-        "by the client to alter the state of mpv\r\n" %
-        (sys.argv[0])
-    )
+help_string = (
+    "Listens on PORT for UDP commands to send to mpv."
+    " PASSWORD sets the password of this server and must be used"
+    " by the client to alter the state of mpv."
+    " Note: mpv must be started with the --input-ipc-server flag."
+)
+
 # Signal handler for SIGINT
 def cleanup(signal, frame):
     global sock
@@ -53,12 +57,12 @@ def call(args):
     return (ret, stdout.decode().strip())
 
 # Send message to mpv (on sock) via socat
-def socat(command, sock=SOCKET):
+def socat(command, sock=mpv_socket):
     ret, out = call(["echo", "'%s'" % command, '|', "socat", "-", sock])
     return out
 
 # Get the property from the mpv listening on sock
-def get_property(property, sock=SOCKET):
+def get_property(property, sock=mpv_socket):
     try:
         cmd = json.dumps({"command": ["get_property", property]})
         out = json.loads(socat(cmd, sock))
@@ -68,7 +72,7 @@ def get_property(property, sock=SOCKET):
     except: return None
 
 # Set the property on the mpv listening on sock
-def set_property(property, value, sock=SOCKET):
+def set_property(property, value, sock=mpv_socket):
     try:
         cmd = json.dumps({"command": ["set_property", property, value]})
         out = json.loads(socat(cmd, sock))
@@ -78,7 +82,7 @@ def set_property(property, value, sock=SOCKET):
     except: return False
 
 # Show the property (on OSD) on the mpv listening on sock
-def show_property(property, pre=None, post="", sock=SOCKET):
+def show_property(property, pre=None, post="", sock=mpv_socket):
     try:
         if pre is None:
             pre = property.title() + ": "
@@ -87,7 +91,7 @@ def show_property(property, pre=None, post="", sock=SOCKET):
     except: return None
 
 # Sends command to mpv listening on sock
-def send_command(command, args, sock=SOCKET):
+def send_command(command, args, sock=mpv_socket):
     try:
         args = [str(arg) for arg in args]
         cmd = "%s %s" % (command, ' '.join(args))
@@ -98,7 +102,7 @@ def send_command(command, args, sock=SOCKET):
 # If delay is None, then this function will block
 def recv(delay=None):
     global sock
-    global password
+    global server_password
 
     sock.setblocking(False)
     ret = None
@@ -112,6 +116,7 @@ def recv(delay=None):
     sock.setblocking(True)
     return ret
 
+# Check whether the message is authentic
 def auth(data, passwd):
     # data should contain "hmac" and "message"
     global history
@@ -122,9 +127,10 @@ def auth(data, passwd):
         return data["hmac"].lower() == h.lower()
     except: return False
 
+# Send ACK message to addr
 def ack(addr, action, response):
     global sock
-    global password
+    global server_password
 
     # Check if action in history
     try:
@@ -140,9 +146,10 @@ def ack(addr, action, response):
     msg = json.dumps({"action": action, "time": t,
                       "result": response[0], "message": response[1]})
     print("ACK", msg)
-    h = hmac.new((password + str(t)).encode(), msg.encode()).hexdigest()
+    h = hmac.new((server_password + str(t)).encode(), msg.encode()).hexdigest()
     sock.sendto(json.dumps({"hmac": h, "message": msg}).encode(), addr)
 
+# Parses the message
 def parse_data(data):
     # Parse Command
     out = (False, None)
@@ -172,6 +179,7 @@ def parse_data(data):
     except: pass
     return out
 
+# State 0 of the FSM (normal mode)
 def state_0(data):
     global repeat_done
     if data["command"] == 'repeat':
@@ -180,6 +188,7 @@ def state_0(data):
         return (state_1, (True, "Repeating"))
     return (state_0, parse_data(data))
 
+# State 1 of the FSM (repeat mode)
 def state_1(data):
     global repeat_done
     if data["command"] == 'stop':
@@ -188,6 +197,7 @@ def state_1(data):
         return (state_0, (True, "Stopping"))
     return (state_1, (False, "Waiting for stop"))
 
+# Repeat a command until getting the 'stop' command
 def repeat(data):
     args = data["args"]
     delay = 100
@@ -198,16 +208,29 @@ def repeat(data):
 
 def main():
     global sock
-    global password
+    global server_password
 
-    server_port = 0;
-    # Must be called with two arguments: PORT PASSWORD
-    if (len(sys.argv) == 3):
-        server_port = int(sys.argv[1])
-        password = sys.argv[2]
-    else:
-        print_help()
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+            description=help_string,
+            usage="%(prog)s [OPTIONS] password",
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-p", "--port", metavar="PORT_NUMBER", type=int,
+                        default=12345,
+                        help="Port number on which to listen")
+    parser.add_argument("-s", "--mpv-socket", metavar="SOCK", type=str,
+                        default="/tmp/mpvsocket",
+                        help="Unix socket that mpv is listening on")
+    parser.add_argument("-r", "--root", metavar="ROOT_DIR", type=str,
+                        default=os.environ['HOME'],
+                        help="Root directory for file browsing")
+    parser.add_argument("password", help="The password for this server")
+    args = parser.parse_args()
+
+    server_port = args.port
+    mpv_socket = args.mpv_socket
+    ROOT_DIR = args.root
+    cwd = ROOT_DIR
+    server_password = args.password
 
     # Setup signal handler
     signal.signal(signal.SIGINT, cleanup)
@@ -225,7 +248,7 @@ def main():
             # print("Connected from %s:%s" % (addr[0], addr[1]))
 
             # Authenticate
-            if auth(data, password) == False: continue
+            if auth(data, server_password) == False: continue
             data = json.loads(data["message"])
             print(data)
 

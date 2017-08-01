@@ -99,10 +99,10 @@ public class BackgroundToggleButton extends ToggleButton implements Callback {
         if (result && success) {
             buttonState = !buttonState;
         }
+        else {
+            Toast.makeText(context, "Failed",
+                Toast.LENGTH_SHORT).show();
+        }
         this.setChecked(buttonState);
     }
 }
-interface Callback {
-    public void callback(boolean result, JSONObject obj);
-}
-

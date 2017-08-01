@@ -96,8 +96,9 @@ public class BackgroundImageButton extends ImageButton implements Callback {
             this.setImageResource(buttonState ? onDrawable : offDrawable);
             buttonState = !buttonState;
         }
+        else {
+            Toast.makeText(context, "Failed",
+                Toast.LENGTH_SHORT).show();
+        }
     }
-}
-interface Callback {
-    public void callback(boolean result, JSONObject obj);
 }
