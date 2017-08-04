@@ -69,16 +69,25 @@ while True:
         cmd = input(": ").split()
         try:
             if cmd[0] == "set":
+                assert(len(cmd) >= 2)
                 print(set_property(cmd[1], cmd[2]))
             elif cmd[0] == "get":
+                assert(len(cmd) >= 1)
                 print(get_property(cmd[1]))
             elif cmd[0] == "send":
+                assert(len(cmd) >= 2)
                 print(send_command(cmd[1], cmd[2:]))
             elif cmd[0] == "show":
-                print(show_property(cmd[1]))
+                assert(len(cmd) >= 2)
+                if len(cmd) == 2:
+                    print(show_property(cmd[1]))
+                elif len(cmd) == 3:
+                    print(show_property(cmd[1], cmd[2]))
+                else:
+                    print(show_property(cmd[1], cmd[2], cmd[3]))
         except:
             print("Error")
-    except EOFError:
+    except (EOFError, KeyboardInterrupt):
         print("Exiting")
         sock.close()
         sys.exit(0)
