@@ -16,7 +16,7 @@ import time
 import socket
 
 SERVER_PASSWORD = "hello"
-SERVER_ADDR = ('127.0.0.1', 12345)
+SERVER_ADDR = ('127.0.0.1', 28899)
 sock = None
 
 # Send dictionary data with timestamp t

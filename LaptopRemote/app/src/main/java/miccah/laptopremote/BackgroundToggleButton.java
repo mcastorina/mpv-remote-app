@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class BackgroundToggleButton extends ToggleButton implements Callback {
 
     private String ipAddress = null;
-    private Integer port = null;
+    private Integer port = new Integer(28899);
     private String passwd = null;
     private Context context = null;
 

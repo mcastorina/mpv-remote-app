@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
     private ActionBarDrawerToggle mDrawerToggle;
 
     private String ipAddress;
-    private Integer port;
+    private Integer port = new Integer(28899);
     private String passwd;
 
     @Override
