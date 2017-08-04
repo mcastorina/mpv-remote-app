@@ -108,6 +108,9 @@ public class MainActivity extends Activity {
         ((BackgroundImageButton)findViewById(R.id.play_pause)).
             setDrawables(android.R.drawable.ic_media_play,
                          android.R.drawable.ic_media_pause);
+        ((BackgroundImageButton)findViewById(R.id.full_screen)).
+            setDrawables(R.drawable.vector_arrange_below_on,
+                         R.drawable.vector_arrange_below_off);
     }
 
     @Override
@@ -153,6 +156,10 @@ public class MainActivity extends Activity {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
         button.setProperty("sub", button.isChecked() ? 1 : 0);
     }
+    public void fullScreenButton(View view) {
+        BackgroundImageButton button = (BackgroundImageButton)view;
+        button.setProperty("fullscreen", button.getState());
+    }
 
     public void setIPAddress(String val) {
         this.ipAddress = val;
@@ -172,6 +179,8 @@ public class MainActivity extends Activity {
         ((BackgroundImageButton)findViewById(R.id.play_pause)).
             setSettings(ipAddress, port, passwd);
         ((BackgroundToggleButton)findViewById(R.id.subtitles)).
+            setSettings(ipAddress, port, passwd);
+        ((BackgroundImageButton)findViewById(R.id.full_screen)).
             setSettings(ipAddress, port, passwd);
     }
     private void sendCommand(Callback cb, String command, String ... args) {

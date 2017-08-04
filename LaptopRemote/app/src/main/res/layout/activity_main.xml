@@ -86,6 +86,16 @@
             android:layout_above="@+id/play_pause"
             android:layout_centerHorizontal="true" />
 
+        <miccah.laptopremote.BackgroundImageButton
+            android:src="@drawable/vector_arrange_below_off"
+            android:id="@+id/full_screen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:onClick="fullScreenButton" />
+
     </RelativeLayout>
 
     <!-- The navigation drawer -->
