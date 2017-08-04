@@ -41,7 +41,7 @@ public class SettingsAdapter extends BaseAdapter {
         myItems.add(new ListItem(
                     ipAddress.substring(0, ipAddress.lastIndexOf('.')+1),
                     "IP Address", true, InputType.TYPE_CLASS_TEXT));
-        myItems.add(new ListItem("", "Port", true, InputType.TYPE_CLASS_NUMBER));
+        myItems.add(new ListItem("28899", "Port", true, InputType.TYPE_CLASS_NUMBER));
         myItems.add(new ListItem(null, null, false, InputType.TYPE_NULL));
         myItems.add(new ListItem("", "Password", true, InputType.TYPE_CLASS_TEXT));
         notifyDataSetChanged();

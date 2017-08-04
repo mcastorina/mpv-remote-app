@@ -223,7 +223,7 @@ def main():
             usage="%(prog)s [OPTIONS] password",
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-p", "--port", metavar="PORT_NUMBER", type=int,
-                        default=12345,
+                        default=28899,
                         help="Port number on which to listen")
     parser.add_argument("-s", "--mpv-socket", metavar="SOCK", type=str,
                         default="/tmp/mpvsocket",
