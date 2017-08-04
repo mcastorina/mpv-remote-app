@@ -167,7 +167,15 @@ def parse_data(data):
             out = (out, None)
         elif data["command"] == 'show':
             # show a property
-            out = show_property(data["property"], data["pre"], data["post"])
+            if 'pre' in data and 'post' in data:
+                out = show_property(data["property"],
+                                    pre=data["pre"], post=data["post"])
+            elif 'pre' in data:
+                out = show_property(data["property"], pre=data["pre"])
+            elif 'post' in data:
+                out = show_property(data["property"], post=data["post"])
+            else:
+                out = show_property(data["property"])
             out = (out != None, out)
         else:
             if data["command"] not in COMMAND_WHITELIST:
