@@ -14,6 +14,7 @@ import hmac
 import json
 import time
 import socket
+import traceback
 
 SERVER_PASSWORD = "hello"
 SERVER_ADDR = ('127.0.0.1', 28899)
@@ -32,7 +33,7 @@ def send_message(data):
     # HMAC
     h = hmac.new((SERVER_PASSWORD + str(t)).encode(), msg.encode()).hexdigest()
     sock.sendto(json.dumps({"hmac": h, "message": msg}).encode(), SERVER_ADDR)
-    return json.loads(sock.recv(1024).decode())
+    return json.loads(sock.recv(4096).decode())
 
 def get_property(property):
     return send_message({
@@ -61,6 +62,16 @@ def show_property(property, pre=None, post=""):
         "post": post
     })
 
+def ls(directory):
+    return send_message({
+        "command": "list",
+        "directory": directory
+    })
+
+def print_json(j):
+    j["message"] = json.loads(j["message"])
+    print(json.dumps(j, sort_keys=True, indent=4, separators=(', ', ': ')))
+
 # UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -70,23 +81,27 @@ while True:
         try:
             if cmd[0] == "set":
                 assert(len(cmd) >= 2)
-                print(set_property(cmd[1], cmd[2]))
+                print_json(set_property(cmd[1], cmd[2]))
             elif cmd[0] == "get":
                 assert(len(cmd) >= 1)
-                print(get_property(cmd[1]))
+                print_json(get_property(cmd[1]))
             elif cmd[0] == "send":
                 assert(len(cmd) >= 2)
-                print(send_command(cmd[1], cmd[2:]))
+                print_json(send_command(cmd[1], cmd[2:]))
             elif cmd[0] == "show":
                 assert(len(cmd) >= 2)
                 if len(cmd) == 2:
-                    print(show_property(cmd[1]))
+                    print_json(show_property(cmd[1]))
                 elif len(cmd) == 3:
-                    print(show_property(cmd[1], cmd[2]))
+                    print_json(show_property(cmd[1], cmd[2]))
                 else:
-                    print(show_property(cmd[1], cmd[2], cmd[3]))
+                    print_json(show_property(cmd[1], cmd[2], cmd[3]))
+            elif cmd[0] == "ls":
+                if len(cmd) == 1: cmd += ["."]
+                for i in range(1, len(cmd)):
+                    print_json(ls(cmd[i]))
         except:
-            print("Error")
+            traceback.print_exc()
     except (EOFError, KeyboardInterrupt):
         print("Exiting")
         sock.close()

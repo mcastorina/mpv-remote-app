@@ -151,10 +151,28 @@ def ack(addr, action, response):
 
 # Parses the message
 def parse_data(data):
+    global ROOT_DIR
     # Parse Command
     out = (False, None)
     try:
-        if data["command"] == 'get':
+        if data["command"] == 'list':
+            # List files in ROOT_DIR/data["directory"]
+            path = os.path.join(ROOT_DIR, data["directory"])
+            path = os.path.abspath(os.path.realpath((path)))
+            if path[:len(ROOT_DIR)] != ROOT_DIR:
+                # Outside of root
+                out = (False, "Directory out of bounds")
+            elif not os.path.isdir(path):
+                # Not a directory
+                out = (False, "%s is not a directory" % data["directory"])
+            else:
+                entries = os.listdir(path)
+                dirs = list(filter(lambda x:
+                    os.path.isdir(os.path.join(path, x)), entries))
+                files = list(filter(lambda x:
+                    os.path.isfile(os.path.join(path, x)), entries))
+                out = (True, {"directories": dirs, "files": files})
+        elif data["command"] == 'get':
             # get property and send it back
             out = get_property(data["property"])
             out = (out != None, out)
@@ -217,6 +235,7 @@ def repeat(data):
 def main():
     global sock
     global server_password
+    global ROOT_DIR
 
     parser = argparse.ArgumentParser(
             description=help_string,
