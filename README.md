@@ -39,5 +39,4 @@ up to control the movie I am watching.
 * Screenshots / APK snapshots
 * Library browsing
 * Saved sessions
-* Settings button
 * Auto find the server on the network

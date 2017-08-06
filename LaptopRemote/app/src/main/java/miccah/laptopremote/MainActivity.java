@@ -16,6 +16,7 @@ import android.widget.SeekBar;
 import android.widget.ViewSwitcher;
 import android.widget.ToggleButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -159,6 +160,9 @@ public class MainActivity extends Activity {
     public void fullScreenButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
         button.setProperty("fullscreen", button.getState());
+    }
+    public void settingsButton(View view) {
+        mDrawerLayout.openDrawer(mDrawerList);
     }
 
     public void setIPAddress(String val) {
