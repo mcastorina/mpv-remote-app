@@ -31,10 +31,6 @@ public class MainActivity extends Activity {
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
-    private String ipAddress;
-    private Integer port = new Integer(28899);
-    private String passwd;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -163,28 +159,6 @@ public class MainActivity extends Activity {
         mDrawerLayout.openDrawer(mDrawerList);
     }
 
-    public void setIPAddress(String val) {
-        this.ipAddress = val;
-        updateButtons();
-    }
-    public void setPort(Integer val) {
-        this.port = val;
-        updateButtons();
-    }
-    public void setPassword(String val) {
-        this.passwd = val;
-        updateButtons();
-    }
-
-    private void updateButtons() {
-        /* Call setSettings on each BackgroundWidget */
-        ((BackgroundImageButton)findViewById(R.id.play_pause)).
-            setSettings(ipAddress, port, passwd);
-        ((BackgroundToggleButton)findViewById(R.id.subtitles)).
-            setSettings(ipAddress, port, passwd);
-        ((BackgroundImageButton)findViewById(R.id.full_screen)).
-            setSettings(ipAddress, port, passwd);
-    }
     private void sendCommand(Callback cb, String command, String ... args) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
@@ -208,7 +182,9 @@ public class MainActivity extends Activity {
     }
     private void send(HashMap<String, Object> cmd, Callback cb) {
         try {
-            new UDPPacket(ipAddress, port, passwd, cb).execute(cmd);
+            new UDPPacket(Settings.ipAddress,
+                          Settings.port,
+                          Settings.passwd, cb).execute(cmd);
         } catch (Exception e) {
             Toast.makeText(MainActivity.this, "Please check settings",
                     Toast.LENGTH_SHORT).show();

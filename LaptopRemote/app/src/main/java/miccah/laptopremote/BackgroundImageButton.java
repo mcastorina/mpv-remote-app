@@ -15,12 +15,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 
 public class BackgroundImageButton extends ImageButton implements Callback {
-
-    private String ipAddress = null;
-    private Integer port = new Integer(28899);
-    private String passwd = null;
     private Context context = null;
-
     private boolean buttonState = false;
     private int onDrawable;
     private int offDrawable;
@@ -42,11 +37,6 @@ public class BackgroundImageButton extends ImageButton implements Callback {
         this.context = c;
     }
 
-    public void setSettings(String ip, Integer port, String passwd) {
-        this.ipAddress = ip;
-        this.port = port;
-        this.passwd = passwd;
-    }
     public void setDrawables(int on, int off) {
         this.onDrawable = on;
         this.offDrawable = off;
@@ -67,8 +57,12 @@ public class BackgroundImageButton extends ImageButton implements Callback {
 
     private void send(HashMap<String, Object> cmd) {
         // Check settings
-        if (ipAddress != null && port != null && passwd != null) {
-            new UDPPacket(ipAddress, port, passwd, this).execute(cmd);
+        if (Settings.ipAddress != null &&
+            Settings.port      != null &&
+            Settings.passwd    != null) {
+            new UDPPacket(Settings.ipAddress,
+                          Settings.port,
+                          Settings.passwd, this).execute(cmd);
         }
         else {
             Toast.makeText(context, "Please check settings",

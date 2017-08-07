@@ -36,14 +36,28 @@ public class SettingsAdapter extends BaseAdapter {
                     wifiManager.getConnectionInfo().getIpAddress());
         } catch (Exception e) {ipAddress = "Error";}
 
+        /* Default Settings */
+        // ipAddress first 3 octets of IPv4 address
+        Settings.ipAddress = ipAddress.substring(0, ipAddress.lastIndexOf('.')+1);
+        Settings.port = new Integer(28899);
+        Settings.passwd = "";
+
         /* Initialize list (Text, Hint, Focusable, InputType) */
-        myItems.add(new ListItem(null, "Settings", false, InputType.TYPE_NULL));
-        myItems.add(new ListItem(
-                    ipAddress.substring(0, ipAddress.lastIndexOf('.')+1),
-                    "IP Address", true, InputType.TYPE_CLASS_TEXT));
-        myItems.add(new ListItem("28899", "Port", true, InputType.TYPE_CLASS_NUMBER));
-        myItems.add(new ListItem(null, null, false, InputType.TYPE_NULL));
-        myItems.add(new ListItem("", "Password", true, InputType.TYPE_CLASS_TEXT));
+        myItems.add(
+            new ListItem(null, "Settings", false, InputType.TYPE_NULL)
+        );
+        myItems.add(
+            new ListItem(Settings.ipAddress, "IP Address", true, InputType.TYPE_CLASS_TEXT)
+        );
+        myItems.add(
+            new ListItem(Settings.port.toString(), "Port", true, InputType.TYPE_CLASS_NUMBER)
+        );
+        myItems.add(
+            new ListItem(null, null, false, InputType.TYPE_NULL)
+        );
+        myItems.add(
+            new ListItem(Settings.passwd, "Password", true, InputType.TYPE_CLASS_TEXT)
+        );
         notifyDataSetChanged();
     }
 
@@ -134,15 +148,15 @@ public class SettingsAdapter extends BaseAdapter {
         String value = view.getText().toString();
         if (hint.equals(myItems.get(1).hint)) {
             // IP Address
-            activity.setIPAddress(value);
+            Settings.ipAddress = value;
         }
         else if (hint.equals(myItems.get(2).hint)) {
             // Port
-            activity.setPort(Integer.parseInt(value));
+            Settings.port = Integer.parseInt(value);
         }
         else if (hint.equals(myItems.get(4).hint)) {
             // Password
-            activity.setPassword(value);
+            Settings.passwd = value;
         }
     }
 }
