@@ -63,7 +63,7 @@ public class SettingsAdapter extends BaseAdapter {
         ViewHolder holder;
         if (convertView == null) {
             holder = new ViewHolder();
-            convertView = mInflater.inflate(R.layout.item, null);
+            convertView = mInflater.inflate(R.layout.settings_item, null);
             holder.switcher = (ViewSwitcher)
                 convertView.findViewById(R.id.item_switcher);
 
