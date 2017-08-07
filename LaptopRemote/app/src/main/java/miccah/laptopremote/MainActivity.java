@@ -144,8 +144,6 @@ public class MainActivity extends Activity {
     }
 
     public void libraryButton(View view) {
-        Toast.makeText(MainActivity.this, "Coming Soon!",
-            Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, LibraryActivity.class);
         startActivity(intent);
     }
