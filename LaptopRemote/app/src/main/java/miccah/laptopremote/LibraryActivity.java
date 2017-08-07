@@ -13,6 +13,7 @@ import android.content.Context;
 import android.app.ProgressDialog;
 import java.util.HashMap;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import android.widget.Toast;
 
@@ -101,18 +102,32 @@ class DirectoryListing implements Callback {
 
     /* Fetch data from server */
     public void fetch(boolean ignoreHidden) {
-        SystemClock.sleep(2000);
         HashMap<String, Object> cmd = new HashMap<String, Object>();
         cmd.put("command", "list");
         cmd.put("directory", this.parent);
         this.done = false;
-        // send(cmd, this);
-        callback(false, null);
+        // Send command
+        try {
+            new UDPPacket(Settings.ipAddress,
+                          Settings.port,
+                          Settings.passwd, this).execute(cmd);
+        } catch (Exception e) {
+            this.callback(false, null);
+        }
         // TODO: timeout
         while (!done) SystemClock.sleep(100);
-        // files.add("file1");
-        // files.add("file2");
-        // directories.add("dir");
+
+        if (ignoreHidden) {
+            /* Remove files and directories starting with '.' */
+            for (int i = files.size()-1; i >= 0; i--) {
+                if (files.get(i).charAt(0) == '.')
+                    files.remove(i);
+            }
+            for (int i = directories.size()-1; i >= 0; i--) {
+                if (directories.get(i).charAt(0) == '.')
+                    directories.remove(i);
+            }
+        }
     }
     public void fetch() {
         fetch(true);
@@ -120,15 +135,21 @@ class DirectoryListing implements Callback {
 
     @Override
     public void callback(boolean result, JSONObject obj) {
-        if (result == false) {
-            /* Failed */
-            this.done = true;
-            return;
+        boolean success = false;
+        try {success = obj.getBoolean("result");} catch (Exception e) {}
+        if (result && success) {
+            try {
+                obj = new JSONObject(obj.getString("message"));
+                JSONArray jfiles = obj.getJSONArray("files");
+                JSONArray jdirs = obj.getJSONArray("directories");
+
+                for (int i = 0; i < jfiles.length(); i++)
+                    files.add(jfiles.getString(i));
+                for (int i = 0; i < jdirs.length(); i++)
+                    directories.add(jdirs.getString(i));
+            }
+            catch (JSONException e) {};
         }
-        try {
-            files.add(obj.getString("message"));
-        }
-        catch (JSONException e) {};
         this.done = true;
     }
 }

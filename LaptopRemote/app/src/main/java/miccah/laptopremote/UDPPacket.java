@@ -13,6 +13,7 @@ public class UDPPacket extends AsyncTask {
 
     private static final int MAX_RETRIES = 3;       // max number of sends
     private static final int ACK_TIMEOUT = 800;     // milliseconds
+    private static final int RECV_BUF_SIZE = 4096;  // bytes
 
     private String ip;
     private Integer port;
@@ -81,7 +82,7 @@ public class UDPPacket extends AsyncTask {
     }
     private boolean recv(DatagramSocket sock, long timestamp) {
         try {
-            byte[] buffer = new byte[1500];
+            byte[] buffer = new byte[RECV_BUF_SIZE];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             sock.setSoTimeout(ACK_TIMEOUT);
             sock.receive(packet);       // Blocks for ACK_TIMEOUT ms
