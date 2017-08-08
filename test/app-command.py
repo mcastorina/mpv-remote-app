@@ -68,6 +68,12 @@ def ls(directory):
         "directory": directory
     })
 
+def play(path):
+    return send_message({
+        "command": "play",
+        "path": path
+    })
+
 def print_json(j):
     j["message"] = json.loads(j["message"])
     print(json.dumps(j, sort_keys=True, indent=4, separators=(', ', ': ')))
@@ -100,6 +106,9 @@ while True:
                 if len(cmd) == 1: cmd += ["."]
                 for i in range(1, len(cmd)):
                     print_json(ls(cmd[i]))
+            elif cmd[0] == "play":
+                assert(len(cmd) == 2)
+                print_json(play(cmd[1]))
         except:
             traceback.print_exc()
     except (EOFError, KeyboardInterrupt):

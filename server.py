@@ -31,7 +31,7 @@ history = deque()
 HISTORY_SIZE = 32
 
 # Whitelist for commands (besides get / set / show property)
-COMMAND_WHITELIST = ["seek", "show_text", "cycle pause"]
+COMMAND_WHITELIST = ["seek", "show_text", "cycle pause", "quit"]
 
 
 # Usage message
@@ -55,6 +55,16 @@ def call(args):
     stdout, stderr = child.communicate()
     ret = child.poll()
     return (ret, stdout.decode().strip())
+
+# Run "mpv --no-terminal --input-ipc-server sock path" in the background
+def play(path, sock=mpv_socket):
+    args = [
+        "mpv",
+        "--no-terminal",
+        "--input-ipc-server", sock,
+        path, "&"
+    ]
+    os.system(" ".join(args))
 
 # Send message to mpv (on sock) via socat
 def socat(command, sock=mpv_socket):
@@ -172,6 +182,18 @@ def parse_data(data):
                 files = list(filter(lambda x:
                     os.path.isfile(os.path.join(path, x)), entries))
                 out = (True, {"directories": dirs, "files": files})
+        elif data["command"] == 'play':
+            path = os.path.join(ROOT_DIR, data["path"])
+            path = os.path.abspath(os.path.realpath((path)))
+            if path[:len(ROOT_DIR)] != ROOT_DIR:
+                # Outside of root
+                out = (False, "Path out of bounds")
+            elif not os.path.isfile(path):
+                # Not a file
+                out = (False, "%s is not a file" % data["path"])
+            else:
+                # Start mpv
+                play(path)
         elif data["command"] == 'get':
             # get property and send it back
             out = get_property(data["property"])
