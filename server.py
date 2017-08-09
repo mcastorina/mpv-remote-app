@@ -277,8 +277,13 @@ def main():
 
     server_port = args.port
     mpv_socket = args.mpv_socket
-    ROOT_DIR = args.root
-    cwd = ROOT_DIR
+    root = os.path.abspath(os.path.realpath((args.root)))
+    if os.path.isdir(root):
+        ROOT_DIR = root
+    else:
+        ROOT_DIR = os.environ['HOME']
+        print("%s is not a directory or does not exist." % root)
+        print("Using default root directory: %s" % ROOT_DIR)
     server_password = args.password
 
     # Setup signal handler
