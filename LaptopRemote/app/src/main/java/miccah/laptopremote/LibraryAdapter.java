@@ -37,10 +37,22 @@ public class LibraryAdapter extends ArrayAdapter<LibraryItem> {
 
 class LibraryItem {
     public String name;
+    public FileType type;
     public int drawable;
 
-    public LibraryItem(String name, int drawable) {
+    public static final int directoryDrawable = R.drawable.folder;
+    public static final int fileDrawable = R.drawable.file;
+
+    public enum FileType {DIRECTORY, FILE};
+
+    public LibraryItem(String name, FileType type) {
         this.name = name;
-        this.drawable = drawable;
+        this.type = type;
+
+        /* Assign drawable */
+        if (this.type == FileType.DIRECTORY)
+            this.drawable = directoryDrawable;
+        else if (this.type == FileType.FILE)
+            this.drawable = fileDrawable;
     }
 }

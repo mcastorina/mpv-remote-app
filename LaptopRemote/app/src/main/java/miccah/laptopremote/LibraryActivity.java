@@ -1,6 +1,8 @@
 package miccah.laptopremote;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -10,31 +12,60 @@ import android.content.AsyncTaskLoader;
 import android.content.Loader;
 import android.content.Context;
 import android.app.ProgressDialog;
-import java.util.HashMap;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView;
+import android.view.View;
 
 public class LibraryActivity extends Activity
     implements LoaderManager.LoaderCallbacks<DirectoryListing> {
-    public final int LOADER_ID = 28899;
 
     private ProgressDialog mDialog;
     private ArrayList<LibraryItem> items;
     private LibraryAdapter itemsAdapter;
+    private DirectoryListing data;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
 
+        data = new DirectoryListing(".");
+
         items = new ArrayList<LibraryItem>();
         itemsAdapter = new LibraryAdapter(this, items);
         ListView listView = (ListView) findViewById(R.id.library_list);
         listView.setAdapter(itemsAdapter);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                    int position, long id) {
+                LibraryItem item = items.get(position);
 
-        getLoaderManager().initLoader(LOADER_ID, null, this);
+                if (item.type == LibraryItem.FileType.DIRECTORY) {
+                    data.changeDirectory(item.name);
+                    getLoaderManager().initLoader(getID(data.parent),
+                            null, LibraryActivity.this);
+                }
+                else if (item.type == LibraryItem.FileType.FILE) {
+                    Toast.makeText(getApplicationContext(),
+                            "Playing " + item.name,
+                            Toast.LENGTH_SHORT).show();
+                    /* Construct "play" command */
+                    HashMap<String, Object> cmd = new HashMap<String, Object>();
+                    cmd.put("command", "play");
+                    cmd.put("path", data.parent + "/" + item.name);
+                    new UDPPacket(Settings.ipAddress,
+                            Settings.port,
+                            Settings.passwd, null).execute(cmd);
+                    finish();
+                }
+            }
+        });
+
+        getLoaderManager().initLoader(getID(data.parent), null, this);
     }
     @Override
     public Loader<DirectoryListing> onCreateLoader(int id, Bundle args) {
@@ -42,28 +73,55 @@ public class LibraryActivity extends Activity
         mDialog.setMessage("Loading...");
         mDialog.setCancelable(false);
         mDialog.show();
-        return new ListLoader(this);
+
+        return new ListLoader(this, data);
     }
 
     @Override
     public void onLoadFinished(Loader<DirectoryListing> loader,
                                DirectoryListing data) {
+        /* Sort our data */
+        this.data = data;
+        Collections.sort(this.data.files);
+        Collections.sort(this.data.directories);
+
         mDialog.dismiss();
-        for (String f : data.files)
-            itemsAdapter.add(new LibraryItem(f, R.drawable.file));
-        for (String d : data.directories)
-            itemsAdapter.add(new LibraryItem(d, R.drawable.folder));
+
+        /* Clear items */
+        items.clear();
+        itemsAdapter.clear();
+
+        /* Add "..", directories, and files */
+        if (!data.parent.equals(".")) {
+            itemsAdapter.add(new LibraryItem("..",
+                        LibraryItem.FileType.DIRECTORY));
+        }
+        for (String d : this.data.directories)
+            itemsAdapter.add(new LibraryItem(d,
+                        LibraryItem.FileType.DIRECTORY));
+        for (String f : this.data.files)
+            itemsAdapter.add(new LibraryItem(f, LibraryItem.FileType.FILE));
     }
 
     @Override
     public void onLoaderReset(Loader<DirectoryListing> loader) {
+    }
 
+    /* Return a unique value given a path */
+    static int count = 0;
+    private int getID(String path) {
+        // FIXME: use hash code and get load caching to work
+        return count++;
+        // return path.hashCode();
     }
 }
 
 class ListLoader extends AsyncTaskLoader<DirectoryListing> {
-    public ListLoader(Context context) {
+    private DirectoryListing files;
+
+    public ListLoader(Context context, DirectoryListing files) {
         super(context);
+        this.files = files;
     }
 
     @Override
@@ -75,11 +133,6 @@ class ListLoader extends AsyncTaskLoader<DirectoryListing> {
 
     @Override
     public DirectoryListing loadInBackground() {
-        return loadData();
-    }
-
-    private DirectoryListing loadData() {
-        DirectoryListing files = new DirectoryListing(".");
         files.fetch();
         return files;
     }
@@ -98,8 +151,17 @@ class DirectoryListing implements Callback {
     }
 
     public void changeDirectory(String name) {
-        // TODO: proper path handling
-        parent = parent + "/" + name;
+        if (name.equals("..")) {
+            if (!parent.equals("."))
+                parent = parent.substring(0, parent.lastIndexOf("/"));
+        }
+        else {
+            parent = parent + "/" + name;
+        }
+
+        // TODO: caching
+        this.files.clear();
+        this.directories.clear();
     }
 
     /* Fetch data from server */
