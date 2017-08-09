@@ -9,6 +9,7 @@ which is running a python script listening for commands.
 * volume slider
 * fullscreen
 * subtitles
+* file browsing
 
 ## How it Works
 `mpv` has an option `--input-ipc-server` which allows you to control
@@ -38,5 +39,11 @@ up to control the movie I am watching.
 * Getting started section
 * Screenshots / APK snapshots
 * Library browsing
+    * Caching
+    * Hidden files option
+    * Filetype filter
+    * Save path
+    * Close current mpv session before starting a new one
+* Quit button
 * Saved sessions
 * Auto find the server on the network
