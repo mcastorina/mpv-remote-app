@@ -4,6 +4,7 @@ which is running a python script listening for commands.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-main.png" width="336">
+<img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-settings.png" width="336">
 </p>
 
 ## Features
