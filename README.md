@@ -2,6 +2,10 @@
 An android application to send UDP commands to `mpv` on my computer,
 which is running a python script listening for commands.
 
+<p align="center">
+<img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-main.png" width="336">
+</p>
+
 ## Features
 
 * play / pause
@@ -37,7 +41,6 @@ up to control the movie I am watching.
 
 * Read / write directly to IPC socket
 * Getting started section
-* Screenshots / APK snapshots
 * Library browsing
     * Caching
     * Hidden files option
