@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
@@ -22,14 +21,19 @@ public class LibraryActivity extends Activity
     public final int LOADER_ID = 28899;
 
     private ProgressDialog mDialog;
-    private ArrayList<String> items;
+    private ArrayList<LibraryItem> items;
+    private LibraryAdapter itemsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
 
-        items = new ArrayList<String>();
+        items = new ArrayList<LibraryItem>();
+        itemsAdapter = new LibraryAdapter(this, items);
+        ListView listView = (ListView) findViewById(R.id.library_list);
+        listView.setAdapter(itemsAdapter);
+
         getLoaderManager().initLoader(LOADER_ID, null, this);
     }
     @Override
@@ -45,12 +49,10 @@ public class LibraryActivity extends Activity
     public void onLoadFinished(Loader<DirectoryListing> loader,
                                DirectoryListing data) {
         mDialog.dismiss();
-        for (String f : data.files) items.add(f);
-        for (String d : data.directories) items.add(d);
-        ArrayAdapter<String> itemsAdapter =
-            new ArrayAdapter<String>(this, R.layout.library_item, items);
-        ListView listView = (ListView) findViewById(R.id.library_list);
-        listView.setAdapter(itemsAdapter);
+        for (String f : data.files)
+            itemsAdapter.add(new LibraryItem(f, R.drawable.file));
+        for (String d : data.directories)
+            itemsAdapter.add(new LibraryItem(d, R.drawable.folder));
     }
 
     @Override
