@@ -19,7 +19,7 @@
         tools:context="com.miccah.laptopremote.MainActivity">
 
         <miccah.laptopremote.BackgroundImageButton
-            android:src="@android:drawable/ic_media_play"
+            android:src="@android:drawable/ic_media_pause"
             android:layout_height="64dp"
             android:id="@+id/play_pause"
             android:layout_marginBottom="92dp"

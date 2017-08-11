@@ -103,11 +103,11 @@ public class MainActivity extends Activity {
 
         /* Setup BackgroundImageButton drawable states */
         ((BackgroundImageButton)findViewById(R.id.play_pause)).
-            setDrawables(android.R.drawable.ic_media_play,
-                         android.R.drawable.ic_media_pause);
+            setDrawables(android.R.drawable.ic_media_pause,
+                         android.R.drawable.ic_media_play);
         ((BackgroundImageButton)findViewById(R.id.full_screen)).
-            setDrawables(R.drawable.vector_arrange_below_on,
-                         R.drawable.vector_arrange_below_off);
+            setDrawables(R.drawable.vector_arrange_below_off,
+                         R.drawable.vector_arrange_below_on);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class MainActivity extends Activity {
     }
     public void playPauseButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
-        button.setProperty("pause", button.getState());
+        button.setProperty("pause", !button.getState());
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
@@ -153,7 +153,7 @@ public class MainActivity extends Activity {
     }
     public void fullScreenButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
-        button.setProperty("fullscreen", button.getState());
+        button.setProperty("fullscreen", !button.getState());
     }
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(mDrawerList);
