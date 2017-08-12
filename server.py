@@ -22,6 +22,8 @@ mpv_socket = "/tmp/mpvsocket"
 ROOT_DIR = None
 # Do not send hidden filenames
 no_hidden = False
+# Filetype filter (empty for all files)
+filetypes = []
 
 # UDP socket to communicate with app
 sock = None
@@ -185,6 +187,9 @@ def parse_data(data):
                     os.path.isdir(os.path.join(path, x)), entries))
                 files = list(filter(lambda x:
                     os.path.isfile(os.path.join(path, x)), entries))
+                if len(filetypes) != 0:
+                    files = list(filter(lambda x:
+                        x.split('.')[-1] in filetypes, entries))
                 out = (True, {"directories": dirs, "files": files})
         elif data["command"] == 'play':
             path = os.path.join(ROOT_DIR, data["path"])
@@ -263,6 +268,7 @@ def main():
     global server_password
     global ROOT_DIR
     global no_hidden
+    global filetypes
 
     parser = argparse.ArgumentParser(
             description=help_string,
@@ -279,6 +285,11 @@ def main():
                         help="Root directory for file browsing")
     parser.add_argument("-d", "--no-hidden", action='store_true',
                         help="Do not send hidden filenames")
+    parser.add_argument("-f", "--filetypes", metavar="FILETYPES", type=str,
+                        default="",
+                        help=''.join(("Only send filetypes ",
+                              "in the comma separated list FILETYPES. ",
+                              "Blank means no filter.")))
     parser.add_argument("password", help="The password for this server")
     args = parser.parse_args()
 
@@ -292,6 +303,7 @@ def main():
         print("%s is not a directory or does not exist." % root)
         print("Using default root directory: %s" % ROOT_DIR)
     no_hidden = args.no_hidden
+    filetypes = [x for x in args.filetypes.split(',') if len(x) > 0]
     server_password = args.password
 
     # Setup signal handler
