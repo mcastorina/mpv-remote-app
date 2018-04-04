@@ -7,7 +7,15 @@
 #   get  - get_property
 #   send - send_command
 #   show - show_property
+#   ls   - list
+#   play - play
 # Note: For boolean properties use "yes" and "no"
+# Examples
+#   : ls path/to/folder
+#   : play path/to/folder/file.mkv
+#   : get pause
+#   : set pause yes
+#   : send quit
 
 import sys
 import hmac

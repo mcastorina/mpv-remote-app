@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# FIXME: make a proper state machine
 
 import os
 import sys
@@ -66,9 +65,9 @@ def play(path, sock=mpv_socket):
         "mpv",
         "--no-terminal",
         "--input-ipc-server", sock,
-        path, "&"
+        '"'+path+'"', "&"
     ]
-    os.system(" ".join(args))
+    return os.system(" ".join(args))
 
 # Send message to mpv (on sock) via socat
 def socat(command, sock=mpv_socket):
@@ -111,24 +110,6 @@ def send_command(command, args, sock=mpv_socket):
         cmd = "%s %s" % (command, ' '.join(args))
         return socat(cmd)
     except: return False
-
-# Waits delay (ms) on sock and returns (data, addr) or None
-# If delay is None, then this function will block
-def recv(delay=None):
-    global sock
-    global server_password
-
-    sock.setblocking(False)
-    ret = None
-
-    if delay is None: ready = select.select([sock], [], []) # Blocking
-    else: ready = select.select([sock], [], [], delay/1000) # Non-blocking
-
-    if ready[0]:
-        ret = sock.recvfrom(1024)
-
-    sock.setblocking(True)
-    return ret
 
 # Check whether the message is authentic
 def auth(data, passwd):
@@ -202,7 +183,8 @@ def parse_data(data):
                 out = (False, "%s is not a file" % data["path"])
             else:
                 # Start mpv
-                play(path)
+                res = play(path)
+                out = (res == 0, "play returned %d" % res)
         elif data["command"] == 'get':
             # get property and send it back
             out = get_property(data["property"])
