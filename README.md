@@ -37,6 +37,7 @@ up to control the movie I am watching.
 
 * Android (android-tools)
 * Python 3
+  * psutil
 
 ## TODO
 
@@ -44,10 +45,6 @@ up to control the movie I am watching.
 * Getting started section
 * Library browsing
     * Caching
-    * Hidden files option
-    * Filetype filter
     * Save path
-    * Close current mpv session before starting a new one
-* Quit button
 * Saved sessions
 * Auto find the server on the network
