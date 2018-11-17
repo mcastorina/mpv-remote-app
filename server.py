@@ -178,7 +178,7 @@ def parse_data(data):
                 out = (False, "%s is not a file" % data["path"])
             else:
                 # Start mpv
-                res = play(path)
+                res = play('"%s"' % path)
                 out = (res == 0, "play returned %d" % res)
         elif data["command"] == 'get':
             # get property and send it back
