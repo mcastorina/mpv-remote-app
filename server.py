@@ -8,6 +8,7 @@ import hmac
 import signal
 import socket
 import select
+import psutil
 import argparse
 import threading
 import subprocess
@@ -34,7 +35,7 @@ history = deque()
 HISTORY_SIZE = 32
 
 # Whitelist for commands (besides get / set / show property)
-COMMAND_WHITELIST = ["seek", "show_text", "cycle pause", "quit"]
+COMMAND_WHITELIST = ["seek", "show_text", "cycle pause", "stop", "loadfile"]
 
 
 # Usage message
@@ -61,13 +62,7 @@ def call(args):
 
 # Run "mpv --no-terminal --input-ipc-server sock path" in the background
 def play(path, sock=mpv_socket):
-    args = [
-        "mpv",
-        "--no-terminal",
-        "--input-ipc-server", sock,
-        '"'+path+'"', "&"
-    ]
-    return os.system(" ".join(args))
+    send_command("loadfile", [path])
 
 # Send message to mpv (on sock) via socat
 def socat(command, sock=mpv_socket):
@@ -269,9 +264,9 @@ def main():
                         help="Do not send hidden filenames")
     parser.add_argument("-f", "--filetypes", metavar="FILETYPES", type=str,
                         default="",
-                        help=''.join(("Only send filetypes ",
-                              "in the comma separated list FILETYPES. ",
-                              "Blank means no filter.")))
+                        help="Only send filetypes "
+                              "in the comma separated list FILETYPES. "
+                              "Blank means no filter.")
     parser.add_argument("password", help="The password for this server")
     args = parser.parse_args()
 
@@ -290,6 +285,20 @@ def main():
 
     # Setup signal handler
     signal.signal(signal.SIGINT, cleanup)
+
+    # Check if mpv is running and spawn if not
+    found_mpv = False
+    for pid in psutil.pids():
+        try:
+            p = psutil.Process(pid)
+            if p.name() == "mpv":
+                found_mpv = True
+                break
+        except: pass
+    if not found_mpv:
+        print("No running mpv instance found. Starting mpv...")
+        subprocess.Popen(["mpv", "--no-terminal",
+            "--input-ipc-server", mpv_socket, "--idle"])
 
     # Start listening on port
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
