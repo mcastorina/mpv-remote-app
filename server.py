@@ -203,6 +203,8 @@ def parse_data(data):
             else:
                 out = show_property(data["property"])
             out = (out != None, out)
+        elif data["command"] == 'health':
+            out = (True, None)
         else:
             if data["command"] not in COMMAND_WHITELIST:
                 print("Command not in whitelist: %s" % data)

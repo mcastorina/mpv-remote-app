@@ -82,6 +82,11 @@ def play(path):
         "path": path
     })
 
+def health():
+    return send_message({
+        "command": "health"
+    })
+
 def print_json(j):
     j["message"] = json.loads(j["message"])
     print(json.dumps(j, sort_keys=True, indent=4, separators=(', ', ': ')))
@@ -117,6 +122,9 @@ while True:
             elif cmd[0] == "play":
                 assert(len(cmd) == 2)
                 print_json(play(cmd[1]))
+            elif cmd[0] == "health":
+                assert(len(cmd) == 1)
+                print_json(health())
         except:
             traceback.print_exc()
     except (EOFError, KeyboardInterrupt):
