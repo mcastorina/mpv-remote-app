@@ -237,10 +237,24 @@ def state_1(data):
 def repeat(data):
     args = data["args"]
     delay = 100
-    if 'delay' in data: delay = data["delay"]
+    auto_speedup = True
+    counter = 0
+    if 'delay' in data:
+        delay = data["delay"]
+        auto_speedup = False
     while not repeat_done:
         send_command(args[0], args[1:])
         time.sleep(delay/1000)
+        if auto_speedup:
+            counter += 1
+            # speedup every 3 second
+            if (counter * delay) >= 3000:
+                # hack to avoid sending so many commands for seek
+                if args[0] == "seek":
+                    args[1] = str(int(args[1]) * 2)
+                else:
+                    delay = max(delay/2, 1)
+                counter = 0
 
 def main():
     global sock
