@@ -258,6 +258,7 @@ def repeat(data):
 
 def main():
     global sock
+    global mpv_socket
     global server_password
     global ROOT_DIR
     global no_hidden
@@ -307,7 +308,9 @@ def main():
     for pid in psutil.pids():
         try:
             p = psutil.Process(pid)
-            if p.name() == "mpv":
+            name, cmdline = p.cmdline()
+            if p.name() == "mpv" and "--input-ipc-server" in cmdline:
+                mpv_socket = cmdline[cmdline.index("--input-ipc-server") + 1]
                 found_mpv = True
                 break
         except: pass
