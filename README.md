@@ -29,6 +29,45 @@ Because the server receives commands over the network, this means it is
 possible, although a very bad idea, to open this up to the Internet. I
 do not recommend it.
 
+## Getting Started
+
+### Installation
+
+1. Clone this repository.
+
+```
+git clone https://github.com/mcastorina/mpv-remote-app
+```
+
+2. Install the python requirements
+
+```
+pip install -r requirements.txt
+```
+
+3. Install the Android application
+
+- Plug in your Android phone
+- Enable developer mode
+
+```
+adb install snapshot.apk
+```
+
+### Run
+Running the server will automatically connect to an existing mpv instance
+or spawn a new one if none found. Use `Ctrl+C` to kill the server.
+
+```
+python server.py p4ssw0rd --no-hidden
+```
+
+### Connect
+1. Start the Android app and open the settings
+2. Fill in the target IP address to the one the server is running on
+3. Fill in the password to the password specified on the command line (e.g. `p4ssw0rd`)
+4. Browse and play!
+
 ## Motivation
 A learning experience writing Android applications and to avoid getting
 up to control the movie I am watching.
@@ -42,9 +81,8 @@ up to control the movie I am watching.
 ## TODO
 
 * Read / write directly to IPC socket
-* Getting started section
 * Library browsing
     * Caching
     * Save path
-* Saved sessions
+* Saved configurations
 * Auto find the server on the network
