@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

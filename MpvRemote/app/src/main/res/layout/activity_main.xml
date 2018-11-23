@@ -16,9 +16,9 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        tools:context="com.miccah.laptopremote.MainActivity">
+        tools:context="com.miccah.mpvremote.MainActivity">
 
-        <miccah.laptopremote.BackgroundImageButton
+        <miccah.mpvremote.BackgroundImageButton
             android:src="@android:drawable/ic_media_pause"
             android:layout_height="64dp"
             android:id="@+id/play_pause"
@@ -63,7 +63,7 @@
             android:progress="100"
             style="@android:style/Widget.Material.SeekBar.Discrete" />
 
-        <miccah.laptopremote.BackgroundToggleButton
+        <miccah.mpvremote.BackgroundToggleButton
             android:text="Subtitles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -87,7 +87,7 @@
             android:layout_above="@+id/play_pause"
             android:layout_centerHorizontal="true" />
 
-        <miccah.laptopremote.BackgroundImageButton
+        <miccah.mpvremote.BackgroundImageButton
             android:src="@drawable/vector_arrange_below_off"
             android:id="@+id/full_screen"
             android:layout_width="wrap_content"

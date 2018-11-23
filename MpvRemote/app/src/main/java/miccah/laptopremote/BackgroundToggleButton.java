@@ -1,12 +1,12 @@
 /*
- * Wrapper for ImageButton class.
+ * Wrapper for ToggleButton class.
  *
  * This class will disable the button when pressed until it receives a
  * result from a UDPPacket.
  */
-package miccah.laptopremote;
+package miccah.mpvremote;
 
-import android.widget.ImageButton;
+import android.widget.ToggleButton;
 import android.widget.Toast;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -14,27 +14,31 @@ import android.graphics.LightingColorFilter;
 import org.json.JSONObject;
 import java.util.HashMap;
 
-public class BackgroundImageButton extends ImageButton implements Callback {
+public class BackgroundToggleButton extends ToggleButton implements Callback {
     private Context context = null;
-    private boolean buttonState = false;
+    private boolean buttonState;
     private int onDrawable;
     private int offDrawable;
 
-    public BackgroundImageButton(Context c) {
+    public BackgroundToggleButton(Context c) {
         super(c);
         this.context = c;
+        buttonState = this.isChecked();
     }
-    public BackgroundImageButton(Context c, AttributeSet a) {
+    public BackgroundToggleButton(Context c, AttributeSet a) {
         super(c, a);
         this.context = c;
+        buttonState = this.isChecked();
     }
-    public BackgroundImageButton(Context c, AttributeSet a, int dsa) {
+    public BackgroundToggleButton(Context c, AttributeSet a, int dsa) {
         super(c, a, dsa);
         this.context = c;
+        buttonState = this.isChecked();
     }
-    public BackgroundImageButton(Context c, AttributeSet a, int dsa, int dsr) {
+    public BackgroundToggleButton(Context c, AttributeSet a, int dsa, int dsr) {
         super(c, a, dsa, dsr);
         this.context = c;
+        buttonState = this.isChecked();
     }
 
     public void setDrawables(int on, int off) {
@@ -87,12 +91,12 @@ public class BackgroundImageButton extends ImageButton implements Callback {
         try {success = message.getBoolean("result");} catch (Exception e) {}
 
         if (result && success) {
-            this.setImageResource(buttonState ? onDrawable : offDrawable);
             buttonState = !buttonState;
         }
         else {
             Toast.makeText(context, "Failed",
                 Toast.LENGTH_SHORT).show();
         }
+        this.setChecked(buttonState);
     }
 }

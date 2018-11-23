@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 import android.app.Activity;
 import android.os.Bundle;

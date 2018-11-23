@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 import java.util.ArrayList;
 import java.util.Collections;

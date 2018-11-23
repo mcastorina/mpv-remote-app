@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 public class Settings {
     protected static String ipAddress; 

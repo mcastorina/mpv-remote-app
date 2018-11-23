@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 import android.os.AsyncTask;
 import java.net.DatagramSocket;
