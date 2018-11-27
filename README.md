@@ -1,6 +1,5 @@
 # mpv-remote-app
-An android application to send UDP commands to `mpv` on my computer,
-which is running a python script listening for commands.
+An Android application to control the [mpv media player](https://mpv.io/) running on a separate computer.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-main.png" width="336">
