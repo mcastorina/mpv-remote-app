@@ -12,7 +12,7 @@ import org.json.JSONObject;
 public class UDPPacket extends AsyncTask {
 
     private static final int MAX_RETRIES = 3;       // max number of sends
-    private static final int ACK_TIMEOUT = 800;     // milliseconds
+    private static final int ACK_TIMEOUT = 500;     // milliseconds
     private static final int RECV_BUF_SIZE = 4096;  // bytes
 
     private String ip;
@@ -20,12 +20,28 @@ public class UDPPacket extends AsyncTask {
     private String password;
     private String response;
     private Callback cb;
+    private boolean validate;
+    private int ack_timeout = ACK_TIMEOUT;
 
-    public UDPPacket(String ip, Integer port, String pass, Callback cb) {
+    public UDPPacket(String ip, Integer port, String pass, Callback cb,
+                     boolean validate, int ack_timeout) {
         this.ip = ip;
         this.port = port;
         this.password = pass;
         this.cb = cb;
+        this.validate = validate;
+        this.ack_timeout = ack_timeout;
+    }
+    public UDPPacket(String ip, Integer port, String pass, Callback cb,
+                     boolean validate) {
+        this.ip = ip;
+        this.port = port;
+        this.password = pass;
+        this.cb = cb;
+        this.validate = validate;
+    }
+    public UDPPacket(String ip, Integer port, String pass, Callback cb) {
+        this(ip, port, pass, cb, true);
     }
 
     protected Boolean doInBackground(Object... objects) {
@@ -84,11 +100,14 @@ public class UDPPacket extends AsyncTask {
         try {
             byte[] buffer = new byte[RECV_BUF_SIZE];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            sock.setSoTimeout(ACK_TIMEOUT);
-            sock.receive(packet);       // Blocks for ACK_TIMEOUT ms
+            sock.setSoTimeout(ack_timeout);
+            sock.receive(packet);       // Blocks for ack_timeout ms
 
             response = new String(buffer, 0, packet.getLength());
             // Check response
+            if (!validate) {
+                return true;
+            }
             JSONObject obj = new JSONObject(response);
             String message = obj.getString("message");
             String hmac = obj.getString("hmac");

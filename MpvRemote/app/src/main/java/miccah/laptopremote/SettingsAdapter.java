@@ -12,11 +12,14 @@ import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.EditText;
 import android.widget.ViewSwitcher;
 import android.text.format.Formatter;
 import android.text.InputType;
 import android.net.wifi.WifiManager;
+import org.json.JSONObject;
+import java.util.HashMap;
 
 public class SettingsAdapter extends BaseAdapter {
     private LayoutInflater mInflater;
@@ -41,6 +44,26 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.ipAddress = ipAddress.substring(0, ipAddress.lastIndexOf('.')+1);
         Settings.port = new Integer(28899);
         Settings.passwd = "";
+
+        /* Search through subnet to see if the default port is running a server */
+        HashMap<String, Object> cmd = new HashMap<String, Object>();
+        cmd.put("command", "health");
+        for (int i = 1; i < 255; i++) {
+            final String ipAddr = Settings.ipAddress + i;
+            new UDPPacket(ipAddr, Settings.port, Settings.passwd, new Callback() {
+                public void callback(boolean result, JSONObject obj) {
+                    String addr = Settings.ipAddress;
+                    boolean notFound = addr.charAt(addr.length() - 1) == '.';
+                    if (result && notFound) {
+                        Settings.ipAddress = ipAddr;
+                        myItems.get(1).caption = Settings.ipAddress;
+                        notifyDataSetChanged();
+                        Toast.makeText(activity, "Found server",
+                            Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }, false, 10).execute(cmd);
+        }
 
         /* Initialize list (Text, Hint, Focusable, InputType) */
         myItems.add(

@@ -332,7 +332,9 @@ def main():
             # print("Connected from %s:%s" % (addr[0], addr[1]))
 
             # Authenticate
-            if auth(data, server_password) == False: continue
+            if auth(data, server_password) == False:
+                if json.loads(data["message"])["command"] != "health":
+                    continue
             data = json.loads(data["message"])
             print(data)
 

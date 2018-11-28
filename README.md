@@ -1,5 +1,6 @@
 # mpv-remote-app
-An Android application to control the [mpv media player](https://mpv.io/) running on a separate computer.
+An Android application to control the [mpv media player](https://mpv.io/)
+running on a separate computer.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-main.png" width="336">
@@ -14,6 +15,7 @@ An Android application to control the [mpv media player](https://mpv.io/) runnin
 * fullscreen
 * subtitles
 * file browsing
+* automatically find server
 
 ## How it Works
 `mpv` has an option `--input-ipc-server` which allows you to control
@@ -84,4 +86,3 @@ up to control the movie I am watching.
     * Caching
     * Save path
 * Saved configurations
-* Auto find the server on the network
