@@ -62,7 +62,7 @@ def call(args):
 
 # Run "mpv --no-terminal --input-ipc-server sock path" in the background
 def play(path, sock=mpv_socket):
-    send_command("loadfile", [path])
+    return send_command("loadfile", [path])
 
 # Send message to mpv (on sock) via socat
 def socat(command, sock=mpv_socket):
@@ -179,7 +179,10 @@ def parse_data(data):
             else:
                 # Start mpv
                 res = play('"%s"' % path)
-                out = (res == 0, "play returned %d" % res)
+                if res == "":
+                    out = (True, None)
+                else:
+                    out = (False, "play returned %s" % res)
         elif data["command"] == 'get':
             # get property and send it back
             out = get_property(data["property"])
