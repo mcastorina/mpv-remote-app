@@ -83,9 +83,8 @@ def play(path):
     })
 
 def health():
-    return send_message({
-        "command": "health"
-    })
+    sock.sendto("health".encode(), SERVER_ADDR)
+    return json.loads(sock.recv(4096).decode())
 
 def print_json(j):
     j["message"] = json.loads(j["message"])

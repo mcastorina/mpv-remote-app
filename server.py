@@ -331,13 +331,16 @@ def main():
     while True:
         data, addr = sock.recvfrom(1024)
         try:
-            data = json.loads(data.decode())
+            data = data.decode()
+            if data == "health":
+                print(data)
+                ack(addr, None, (True, None))
+                continue
+            data = json.loads(data)
             # print("Connected from %s:%s" % (addr[0], addr[1]))
 
             # Authenticate
-            if auth(data, server_password) == False:
-                if json.loads(data["message"])["command"] != "health":
-                    continue
+            if auth(data, server_password) == False: continue
             data = json.loads(data["message"])
             print(data)
 

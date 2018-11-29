@@ -46,8 +46,6 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.passwd = "";
 
         /* Search through subnet to see if the default port is running a server */
-        HashMap<String, Object> cmd = new HashMap<String, Object>();
-        cmd.put("command", "health");
         for (int i = 1; i < 255; i++) {
             final String ipAddr = Settings.ipAddress + i;
             new UDPPacket(ipAddr, Settings.port, Settings.passwd, new Callback() {
@@ -62,7 +60,7 @@ public class SettingsAdapter extends BaseAdapter {
                             Toast.LENGTH_SHORT).show();
                     }
                 }
-            }, false, 10).execute(cmd);
+            }, false, 10).execute(null, "health");
         }
 
         /* Initialize list (Text, Hint, Focusable, InputType) */
