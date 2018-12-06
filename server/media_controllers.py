@@ -33,9 +33,16 @@ class SocketMediaController(MediaController):
         return self.sock.sendall(message.encode())
     def recv(self, timeout=None):
         self.sock.settimeout(timeout)
+        msg = ''
         try:
-            return self.sock.recv(4096).decode()
+            while True:
+                ret = self.sock.recv(4096).decode()
+                if not ret:
+                    return msg
+                msg += ret
         except socket.timeout as e:
+            return msg
+        except:
             return None
 
 class MpvController(SocketMediaController):
@@ -44,67 +51,67 @@ class MpvController(SocketMediaController):
         self.connect()
 
     def play(self, path):
-        return self.send_command("loadfile", [path])
+        return self.send_command('loadfile', [path])
 
     def pause(self, state=True):
-        return self.set_property("pause", state)
+        return self.set_property('pause', state)
 
     def stop(self):
-        return self.send_command("stop")
+        return self.send_command('stop')
 
     def seek(self, seconds):
-        return self.send_command("seek", [seconds])
+        return self.send_command('seek', [seconds])
 
     def set_volume(self, volume):
-        return self.set_property("volume", volume)
+        return self.set_property('volume', volume)
 
     def set_subtitles(self, track):
-        return self.set_property("sub", track)
+        return self.set_property('sub', track)
 
     def fullscreen(self, state):
-        return self.set_property("fullscreen", state)
+        return self.set_property('fullscreen', state)
 
     # Get the property
     def get_property(self, property):
         try:
-            cmd = json.dumps({"command": ["get_property", property]})
-            out = json.loads(self._socat(cmd))
-            if out["error"] != "success":
+            cmd = json.dumps({'command': ['get_property', property]})
+            out = json.loads(self._socat(cmd).split('\n')[0])
+            if out['error'] != 'success':
                 return None
-            return out["data"]
+            return out['data']
         except: return None
 
     # Set the property
     def set_property(self, property, value):
         try:
-            cmd = json.dumps({"command": ["set_property", property, value]})
-            out = json.loads(self._socat(cmd))
-            if out["error"] != "success":
+            cmd = json.dumps({'command': ['set_property', property, value]})
+            out = json.loads(self._socat(cmd).split('\n')[0])
+            if out['error'] != 'success':
                 return False
             return True
         except: return False
 
     # Show the property (on OSD)
-    def show_property(self, property, pre=None, post=""):
+    def show_property(self, property, pre=None, post=''):
         try:
             if pre is None:
-                pre = property.title() + ": "
-            arg = "\"%s${%s}%s\"" % (pre, property, post)
-            return self.send_command("show_text", [arg])
+                pre = property.title() + ': '
+            arg = '"%s${%s}%s"' % (pre, property, post)
+            return self.send_command('show_text', [arg])
         except: return None
 
     # Send command
     def send_command(self, command, args=[]):
         try:
             args = [str(arg) for arg in args]
-            cmd = "%s %s" % (command, ' '.join(args))
+            cmd = '%s %s' % (command, ' '.join(args))
             return self._socat(cmd)
         except: return False
 
     def _socat(self, command):
         # TODO: use super class to send / recv
-        ret, out = _call(["echo", "'%s'" % command, '|', "socat", "-", self.sock_addr])
-        return out
+        self.send(command + '\n')
+        return self.recv(0.05)
 
 # Run command and return (exit code, stdout)
 def _call(args):
