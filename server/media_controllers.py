@@ -7,8 +7,10 @@ class MediaController:
         pass
     def play(self, path):
         raise Exception('Not Implemented')
-    def pause(self, state=True):
+    def pause(self, state):
         raise Exception('Not Implemented')
+    def unpause(self):
+        return self.pause(False)
     def stop(self):
         raise Exception('Not Implemented')
     def seek(self, seconds):
@@ -19,6 +21,10 @@ class MediaController:
         raise Exception('Not Implemented')
     def fullscreen(self, state):
         raise Exception('Not Implemented')
+    def mute(self, state):
+        raise Exception('Not Implemented')
+    def unmute(self):
+        return self.mute(False)
 
 class SocketMediaController(MediaController):
     def __init__(self, sock_addr):
@@ -70,6 +76,9 @@ class MpvController(SocketMediaController):
 
     def fullscreen(self, state):
         return self.set_property('fullscreen', state)
+
+    def mute(self, state=True):
+        return self.set_property('mute', state)
 
     # Get the property
     def get_property(self, property):
