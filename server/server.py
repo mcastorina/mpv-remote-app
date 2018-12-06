@@ -13,10 +13,10 @@ import argparse
 import threading
 import subprocess
 from collections import deque
+from media_controllers import MpvController
 
-# Unix socket used to communicate with mpv
-# mpv needs to be started with the flag --input-ipc-server mpv_socket
-mpv_socket = "/tmp/mpvsocket"
+# global mpv controller
+mpv = None
 
 # Base address for file browsing
 ROOT_DIR = None
@@ -51,60 +51,6 @@ def cleanup(signal, frame):
     global sock
     sock.close()
     sys.exit(0)
-
-# Run command and return (exit code, stdout)
-def call(args):
-    child = subprocess.Popen(' '.join(args), shell=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = child.communicate()
-    ret = child.poll()
-    return (ret, stdout.decode().strip())
-
-# Run "mpv --no-terminal --input-ipc-server sock path" in the background
-def play(path, sock=mpv_socket):
-    return send_command("loadfile", [path])
-
-# Send message to mpv (on sock) via socat
-def socat(command, sock=mpv_socket):
-    ret, out = call(["echo", "'%s'" % command, '|', "socat", "-", sock])
-    return out
-
-# Get the property from the mpv listening on sock
-def get_property(property, sock=mpv_socket):
-    try:
-        cmd = json.dumps({"command": ["get_property", property]})
-        out = json.loads(socat(cmd, sock))
-        if out["error"] != "success":
-            return None
-        return out["data"]
-    except: return None
-
-# Set the property on the mpv listening on sock
-def set_property(property, value, sock=mpv_socket):
-    try:
-        cmd = json.dumps({"command": ["set_property", property, value]})
-        out = json.loads(socat(cmd, sock))
-        if out["error"] != "success":
-            return False
-        return True
-    except: return False
-
-# Show the property (on OSD) on the mpv listening on sock
-def show_property(property, pre=None, post="", sock=mpv_socket):
-    try:
-        if pre is None:
-            pre = property.title() + ": "
-        arg = "\"%s${%s}%s\"" % (pre, property, post)
-        return send_command("show_text", [arg], sock)
-    except: return None
-
-# Sends command to mpv listening on sock
-def send_command(command, args, sock=mpv_socket):
-    try:
-        args = [str(arg) for arg in args]
-        cmd = "%s %s" % (command, ' '.join(args))
-        return socat(cmd)
-    except: return False
 
 # Check whether the message is authentic
 def auth(data, passwd):
@@ -178,18 +124,18 @@ def parse_data(data):
                 out = (False, "%s is not a file" % data["path"])
             else:
                 # Start mpv
-                res = play('"%s"' % path)
+                res = mpv.play('"%s"' % path)
                 if res == "":
                     out = (True, None)
                 else:
                     out = (False, "play returned %s" % res)
         elif data["command"] == 'get':
             # get property and send it back
-            out = get_property(data["property"])
+            out = mpv.get_property(data["property"])
             out = (out != None, out)
         elif data["command"] == 'set':
             # set a single property
-            out = set_property(data["property"], data["value"])
+            out = mpv.set_property(data["property"], data["value"])
             if out == False:
                 print("Error setting property: %s = %s" %
                         (data["property"], data["value"]))
@@ -197,14 +143,14 @@ def parse_data(data):
         elif data["command"] == 'show':
             # show a property
             if 'pre' in data and 'post' in data:
-                out = show_property(data["property"],
+                out = mpv.show_property(data["property"],
                                     pre=data["pre"], post=data["post"])
             elif 'pre' in data:
-                out = show_property(data["property"], pre=data["pre"])
+                out = mpv.show_property(data["property"], pre=data["pre"])
             elif 'post' in data:
-                out = show_property(data["property"], post=data["post"])
+                out = mpv.show_property(data["property"], post=data["post"])
             else:
-                out = show_property(data["property"])
+                out = mpv.show_property(data["property"])
             out = (out != None, out)
         elif data["command"] == 'health':
             out = (True, None)
@@ -213,7 +159,7 @@ def parse_data(data):
                 print("Command not in whitelist: %s" % data)
                 out = (False, "Command not allowed")
             else:
-                out = send_command(data["command"], data["args"])
+                out = mpv.send_command(data["command"], data["args"])
                 out = (out != None, out)
     except: pass
     return out
@@ -246,7 +192,7 @@ def repeat(data):
         delay = data["delay"]
         auto_speedup = False
     while not repeat_done:
-        send_command(args[0], args[1:])
+        mpv.send_command(args[0], args[1:])
         time.sleep(delay/1000)
         if auto_speedup:
             counter += 1
@@ -261,7 +207,7 @@ def repeat(data):
 
 def main():
     global sock
-    global mpv_socket
+    global mpv
     global server_password
     global ROOT_DIR
     global no_hidden
@@ -321,13 +267,14 @@ def main():
         print("No running mpv instance found. Starting mpv...")
         subprocess.Popen(["mpv", "--no-terminal",
             "--input-ipc-server", mpv_socket, "--idle"])
+        time.sleep(0.2)
+    mpv = MpvController(mpv_socket)
 
     # Start listening on port
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('0.0.0.0', server_port))
 
     state = state_0
-
     while True:
         data, addr = sock.recvfrom(1024)
         try:
