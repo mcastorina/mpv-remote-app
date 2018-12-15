@@ -1,4 +1,5 @@
 import os
+import hmac
 import json
 import socket
 import logging
@@ -57,4 +58,10 @@ class MediaServer:
         self.sock.sendto(str(success).encode(), self.client)
     # authenticates data we received
     def _auth(self, data):
-        return True
+        # expect data = {message: "message", hmac: "HMAC"}
+        try:
+            m = json.loads(data["message"])
+            h = hmac.new((self.password + str(m["time"])).encode(),
+                     data["message"].encode()).hexdigest()
+            return data["hmac"].lower() == h.lower()
+        except: return False
