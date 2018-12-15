@@ -1,5 +1,7 @@
 import os
+import json
 import socket
+import logging
 from collections import OrderedDict
 
 class MediaServer:
@@ -26,12 +28,33 @@ class MediaServer:
     # returns whether the server is running or not
     def is_running(self):
         pass
-    # receives a command
+    # receives a command and authenticates the message
     def _recv(self):
-        pass
+        # loop until we receive a valid command
+        while True:
+            data, self.client = self.sock.recvfrom(1024)
+            try:
+                data = data.decode()
+                logging.debug("Received: \"%s\"", data)
+                if data == "health":
+                    logging.debug("alive")
+                    self._ack(True)
+                    continue
+                # expect {message: "message", hmac: "HMAC"}
+                data = json.loads(data)
+                # authenticate
+                if self._auth(data) == False:
+                    logging.info("Authentication failed for command: \"%s\"", str(data))
+                    continue
+                data = json.loads(data["message"])
+                logging.info("Received command: \"%s\"", data)
+                return data
+            except Exception as e:
+                logging.error("Error parsing command: \"%s\"", data)
+                logging.error(str(e))
     # sends response back to requester
-    def _ack(self):
-        pass
+    def _ack(self, success):
+        self.sock.sendto(str(success).encode(), self.client)
     # authenticates data we received
     def _auth(self, data):
-        pass
+        return True
