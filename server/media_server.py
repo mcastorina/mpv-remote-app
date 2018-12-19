@@ -2,6 +2,7 @@ import os
 import hmac
 import json
 import time
+import signal
 import socket
 import logging
 from collections import OrderedDict
@@ -21,19 +22,35 @@ class MediaServer:
         self.state = 'NORMAL'       # state can be NORMAL or REPEAT
         self.history_size = 32      # max number of commands to remember
         self.history = OrderedDict()
+        # setup pid for daemon
+        self.pid = 0
 
         # attributes that change per connection
         self.client = None
         self.action_id = None
     # runs the server
     def run(self, daemon=False):
-        pass
+        self.pid = 0
+        if daemon:
+            self.pid = os.fork()
+        if self.pid == 0:
+            while True:
+                try:
+                    logging.debug("heartbeat")
+                    self._serve(self._recv())
+                except KeyboardInterrupt:
+                    self.stop()
+                    break
+        return True
     # stops the server
     def stop(self):
-        pass
+        logging.debug("shutting server down")
+        if self.pid != 0:
+            os.kill(self.pid, signal.SIGTERM)
+            self.pid = 0
     # returns whether the server is running or not
     def is_running(self):
-        pass
+        return self.pid != 0
     # receives a command and authenticates the message
     def _recv(self):
         # loop until we receive a valid command
@@ -85,3 +102,6 @@ class MediaServer:
                      data["message"].encode()).hexdigest()
             return data["hmac"].lower() == h.lower()
         except: return False
+    # take action to (already authenticated) command
+    def _serve(self, command):
+        self._ack(False, "Not Implemented")
