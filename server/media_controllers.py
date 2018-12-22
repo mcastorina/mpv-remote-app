@@ -118,7 +118,6 @@ class MpvController(SocketMediaController):
         except: return False
 
     def _socat(self, command):
-        # TODO: use super class to send / recv
         self.send(command + '\n')
         return self.recv(0.05)
 

@@ -21,6 +21,7 @@ import sys
 import hmac
 import json
 import time
+import shlex
 import socket
 import traceback
 
@@ -90,12 +91,18 @@ def print_json(j):
     j["message"] = json.loads(j["message"])
     print(json.dumps(j, sort_keys=True, indent=4, separators=(', ', ': ')))
 
+def command(command, kv_pairs):
+    cmd = {"command": command}
+    for k,v in kv_pairs:
+        cmd[k] = v
+    return send_message(cmd)
+
 # UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 while True:
     try:
-        cmd = input(": ").split()
+        cmd = shlex.split(input(": "))
         try:
             if cmd[0] == "set":
                 assert(len(cmd) >= 2)
@@ -124,6 +131,9 @@ while True:
             elif cmd[0] == "health":
                 assert(len(cmd) == 1)
                 print_json(health())
+            elif cmd[0] == "cmd":
+                pairs = map(lambda y: y.split(':'), cmd[2:])
+                print_json(command(cmd[1], pairs))
         except:
             traceback.print_exc()
     except (EOFError, KeyboardInterrupt):

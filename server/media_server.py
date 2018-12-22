@@ -8,12 +8,13 @@ import logging
 from collections import OrderedDict
 
 class MediaServer:
-    def __init__(self, port, password, root, no_hidden=True, filetypes=None):
-        self.port = port            # port to listen on
-        self.password = password    # server secret
-        self.root = root            # top level directory of server
-        self.no_hidden = no_hidden  # send / play hidden files
-        self.filetypes = filetypes  # array of acceptable filetypes
+    def __init__(self, port, password, root=os.getcwd(), no_hidden=True, filetypes=None, controller=None):
+        self.port = port                # port to listen on
+        self.password = password        # server secret
+        self.root = root                # top level directory of server
+        self.no_hidden = no_hidden      # send / play hidden files
+        self.filetypes = filetypes      # array of acceptable filetypes
+        self.controller = controller    # MediaController
 
         # create socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -103,5 +104,26 @@ class MediaServer:
             return data["hmac"].lower() == h.lower()
         except: return False
     # take action to (already authenticated) command
-    def _serve(self, command):
-        self._ack(False, "Not Implemented")
+    def _serve(self, cmd):
+        try:
+            command = cmd["command"]
+            if command == "play":
+                self._ack(self.controller.play(cmd["path"]), None)
+            elif command == "pause":
+                self._ack(self.controller.pause(cmd["state"]), None)
+            elif command == "stop":
+                self._ack(self.controller.stop(), None)
+            elif command == "seek":
+                self._ack(self.controller.seek(cmd["seconds"]), None)
+            elif command == "set_volume":
+                self._ack(self.controller.set_volume(cmd["volume"]), None)
+            elif command == "set_subtitles":
+                self._ack(self.controller.set_subtitles(cmd["track"]), None)
+            elif command == "fullscreen":
+                self._ack(self.controller.fullscreen(cmd["state"]), None)
+            elif command == "mute":
+                self._ack(self.controller.mute(cmd["state"]), None)
+        except KeyError as e:
+            self._ack(False, "Expection '%s'" % str(e))
+        except:
+            self._ack(False, "Not Implemented")
