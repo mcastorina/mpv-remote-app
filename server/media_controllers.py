@@ -19,6 +19,8 @@ class MediaController:
         raise Exception('Not Implemented')
     def set_subtitles(self, track):
         raise Exception('Not Implemented')
+    def set_audio(self, track):
+        raise Exception('Not Implemented')
     def fullscreen(self, state):
         raise Exception('Not Implemented')
     def mute(self, state):
@@ -36,6 +38,8 @@ class MediaController:
     def get_volume(self):
         raise Exception('Not Implemented')
     def get_subtitles(self):
+        raise Exception('Not Implemented')
+    def get_audio(self, track):
         raise Exception('Not Implemented')
     def get_fullscreen(self):
         raise Exception('Not Implemented')
@@ -84,6 +88,8 @@ class MpvController(SocketMediaController):
         return self.set_property('volume', volume)
     def set_subtitles(self, track):
         return self.set_property('sub', track)
+    def set_audio(self, track):
+        return self.set_property('audio', track)
     def fullscreen(self, state):
         return self.set_property('fullscreen', state)
     def mute(self, state=True):
@@ -100,6 +106,8 @@ class MpvController(SocketMediaController):
         return self.get_property('volume')
     def get_subtitles(self):
         return self.get_property('sub')
+    def get_audio(self):
+        return self.get_property('audio')
     def get_fullscreen(self):
         return self.get_property('fullscreen')
     def get_mute(self):
