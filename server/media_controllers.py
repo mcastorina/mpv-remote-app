@@ -25,6 +25,22 @@ class MediaController:
         raise Exception('Not Implemented')
     def unmute(self):
         return self.mute(False)
+    def get_playback(self):
+        raise Exception('Not Implemented')
+    def get_pause(self):
+        raise Exception('Not Implemented')
+    def get_time(self):
+        raise Exception('Not Implemented')
+    def get_pos(self):
+        raise Exception('Not Implemented')
+    def get_volume(self):
+        raise Exception('Not Implemented')
+    def get_subtitles(self):
+        raise Exception('Not Implemented')
+    def get_fullscreen(self):
+        raise Exception('Not Implemented')
+    def get_mute(self):
+        raise Exception('Not Implemented')
 
 class SocketMediaController(MediaController):
     def __init__(self, sock_addr):
@@ -58,27 +74,36 @@ class MpvController(SocketMediaController):
 
     def play(self, path):
         return self.send_command('loadfile', [path])
-
     def pause(self, state=True):
         return self.set_property('pause', state)
-
     def stop(self):
         return self.send_command('stop')
-
     def seek(self, seconds):
         return self.send_command('seek', [seconds])
-
     def set_volume(self, volume):
         return self.set_property('volume', volume)
-
     def set_subtitles(self, track):
         return self.set_property('sub', track)
-
     def fullscreen(self, state):
         return self.set_property('fullscreen', state)
-
     def mute(self, state=True):
         return self.set_property('mute', state)
+    def get_playback(self):
+        return self.get_property('filename')
+    def get_pause(self):
+        return self.get_property('pause')
+    def get_time(self):
+        return self.get_property('time-pos')
+    def get_pos(self):
+        return self.get_property('percent-pos')
+    def get_volume(self):
+        return self.get_property('volume')
+    def get_subtitles(self):
+        return self.get_property('sub')
+    def get_fullscreen(self):
+        return self.get_property('fullscreen')
+    def get_mute(self):
+        return self.get_property('mute')
 
     # Get the property
     def get_property(self, property):
