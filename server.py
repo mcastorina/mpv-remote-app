@@ -311,7 +311,7 @@ def main():
     for pid in psutil.pids():
         try:
             p = psutil.Process(pid)
-            name, cmdline = p.cmdline()
+            cmdline = p.cmdline()
             if p.name() == "mpv" and "--input-ipc-server" in cmdline:
                 mpv_socket = cmdline[cmdline.index("--input-ipc-server") + 1]
                 found_mpv = True
