@@ -43,7 +43,7 @@ git clone https://github.com/mcastorina/mpv-remote-app
 2. Install the python requirements
 
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt     # install for python 3
 ```
 
 3. Install the Android application
@@ -57,7 +57,8 @@ adb install snapshot.apk
 
 ### Run
 Running the server will automatically connect to an existing mpv instance
-or spawn a new one if none found. Use `Ctrl+C` to kill the server.
+or spawn a new one if none found. Use `Ctrl+C` to kill the
+server. Currently, the server only works with Python 3.
 
 ```
 python server.py p4ssw0rd --no-hidden
