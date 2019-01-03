@@ -50,14 +50,20 @@ class SocketMediaController(MediaController):
     def __init__(self, sock_addr):
         super().__init__()
         self.sock_addr = sock_addr
+        self.sock = None
     def connect(self):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(self.sock_addr)
     def disconnect(self):
         self.sock.close()
+        self.sock = None
+    def connected(self):
+        return self.sock is not None
     def send(self, message):
+        if not self.connected(): self.connect()
         return self.sock.sendall(message.encode())
     def recv(self, timeout=None):
+        if not self.connected(): self.connect()
         self.sock.settimeout(timeout)
         msg = ''
         try:
@@ -74,7 +80,6 @@ class SocketMediaController(MediaController):
 class MpvController(SocketMediaController):
     def __init__(self, unix_socket='/tmp/mpvsocket'):
         super().__init__(unix_socket)
-        self.connect()
 
     def play(self, path):
         return self.send_command('loadfile', [path])
