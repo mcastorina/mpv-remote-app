@@ -49,11 +49,12 @@ public class BackgroundToggleButton extends ToggleButton implements Callback {
         return buttonState;
     }
 
-    public void setProperty(String property, Object value) {
+    public void sendCommand(String cmd, Object... pairs) {
         HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("command", "set");
-        map.put("property", property);
-        map.put("value", value);
+        map.put("command", cmd);
+        for (int i = 0; i < pairs.length - 1; i += 2) {
+            map.put((String)pairs[i], pairs[i+1]);
+        }
 
         setButtonState(false);
         send(map);
