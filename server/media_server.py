@@ -104,25 +104,42 @@ class MediaServer:
             return data["hmac"].lower() == h.lower()
         except: return False
     # take action to (already authenticated) command
-    def _serve(self, cmd):
+    def _serve(self, cmd, ack=True):
         try:
             command = cmd["command"]
+
+            # ret / msg will get changed by following cases
+            ret, msg = False, None
             if command == "play":
-                self._ack(self.controller.play(cmd["path"]), None)
+                ret = self.controller.play(cmd["path"])
             elif command == "pause":
-                self._ack(self.controller.pause(cmd["state"]), None)
+                ret = self.controller.pause(cmd["state"])
             elif command == "stop":
-                self._ack(self.controller.stop(), None)
+                if self.state == 'REPEAT':
+                    self.state = 'NORMAL'
+                    ret, msg = True, "Stopping"
+                else:
+                    ret = self.controller.stop()
             elif command == "seek":
-                self._ack(self.controller.seek(cmd["seconds"]), None)
+                ret = self.controller.seek(cmd["seconds"])
             elif command == "set_volume":
-                self._ack(self.controller.set_volume(cmd["volume"]), None)
+                ret = self.controller.set_volume(cmd["volume"])
             elif command == "set_subtitles":
-                self._ack(self.controller.set_subtitles(cmd["track"]), None)
+                ret = self.controller.set_subtitles(cmd["track"])
             elif command == "fullscreen":
-                self._ack(self.controller.fullscreen(cmd["state"]), None)
+                ret = self.controller.fullscreen(cmd["state"])
             elif command == "mute":
-                self._ack(self.controller.mute(cmd["state"]), None)
+                ret = self.controller.mute(cmd["state"])
+            elif command == "repeat":
+                self.state = 'REPEAT'
+                threading.Thread(target=self._repeat, args=[cmd],
+                        daemon=True).start()
+                ret = True
+            else:
+                ret, msg = False, "Not Implemented"
+
+            # send back ack if required
+            if ack: self._ack(ret, msg)
         except KeyError as e:
             self._ack(False, "Expection '%s'" % str(e))
         except:
