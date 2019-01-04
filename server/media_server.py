@@ -5,6 +5,7 @@ import time
 import signal
 import socket
 import logging
+import threading
 from collections import OrderedDict
 
 class MediaServer:
@@ -144,3 +145,32 @@ class MediaServer:
             self._ack(False, "Expection '%s'" % str(e))
         except:
             self._ack(False, "Not Implemented")
+    def _repeat(self, cmd):
+        delay = 0.1
+        speedup = True
+        if "delay" in cmd:
+            delay = cmd["delay"] / 1000
+        if "speedup" in cmd:
+            speedup = cmd["speedup"]
+        args = cmd["args"]
+        command, pairs = args[0], args[1:]
+
+        if command != "seek":
+            logging.info("Repeat command \"%s\" not supported", command)
+            return
+
+        cmd = {"command": command}
+        for i in range(0, len(pairs), 2):
+            cmd[pairs[i]] = pairs[i+1]
+
+        counter = 0
+        while self.state == 'REPEAT':
+            logging.debug("REPEAT: %s", str(cmd))
+            self._serve(cmd, ack=False)
+            time.sleep(delay)
+            if speedup:
+                counter += 1
+                # speedup every 3 second
+                if (counter * delay) >= 2:
+                    cmd["seconds"] *= 2
+                    counter = 0
