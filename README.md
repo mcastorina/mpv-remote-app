@@ -60,6 +60,11 @@ Running the server will automatically connect to an existing mpv instance
 or spawn a new one if none found. Use `Ctrl+C` to kill the
 server. Currently, the server only works with Python 3.
 
+You can manually start mpv below or let the server spawn it for you.
+```
+mpv --input-ipc-server /tmp/mpvsocket --idle
+```
+
 ```
 python server.py p4ssw0rd --no-hidden
 ```
