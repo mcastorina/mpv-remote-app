@@ -6,6 +6,7 @@ import signal
 import socket
 import logging
 import threading
+from media_controllers import *
 from collections import OrderedDict
 from os.path import abspath, realpath, join, isdir, isfile
 
@@ -148,13 +149,16 @@ class MediaServer:
                 ret = True
             elif command == "list":
                 ret, msg = self._list(cmd["directory"])
+            elif command == "show":
+                # display text on screen
+                ret = self._show(cmd)
             else:
                 ret, msg = False, "Not Implemented"
 
             # send back ack if required
             if ack: self._ack(ret, msg)
         except KeyError as e:
-            self._ack(False, "Expection '%s'" % str(e))
+            self._ack(False, "Exception '%s'" % str(e))
         except:
             self._ack(False, "Not Implemented")
     def _list(self, opath):
@@ -175,6 +179,14 @@ class MediaServer:
             files = list(filter(lambda x:
                 x.split('.')[-1] in self.filetypes, entries))
         return (True, {"directories": dirs, "files": files})
+    def _show(self, command):
+        # only supported in MpvController
+        supported = [MpvController]
+        if any(map(lambda y: isinstance(self.controller, y), supported)):
+            pre, post = None, ''
+            if "pre" in command: pre = command["pre"]
+            if "post" in command: post = command["post"]
+            return self.controller.show_property(command["property"], pre, post)
     def _repeat(self, cmd):
         delay = 0.1
         speedup = True

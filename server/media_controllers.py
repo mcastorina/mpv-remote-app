@@ -140,12 +140,12 @@ class MpvController(SocketMediaController):
         except: return False
 
     # Show the property (on OSD)
-    def show_property(self, property, pre=None, post=''):
+    def show_property(self, property, pre=None, post='', duration=1000):
         try:
             if pre is None:
                 pre = property.title() + ': '
-            arg = '"%s${%s}%s"' % (pre, property, post)
-            return self.send_command('show_text', [arg])
+            arg = '%s${%s}%s' % (pre, property, post)
+            return self._socat('show_text "%s" %d' % (arg, duration))
         except: return None
 
     # Send command
