@@ -1,4 +1,5 @@
 import subprocess
+import logging
 import socket
 import json
 
@@ -150,8 +151,8 @@ class MpvController(SocketMediaController):
     # Send command
     def send_command(self, command, args=[]):
         try:
-            args = [str(arg) for arg in args]
-            cmd = '%s %s' % (command, ' '.join(args))
+            cmd = json.dumps({"command": [command] + args})
+            logging.debug("send_command: %s", cmd)
             return self._socat(cmd)
         except: return False
 
