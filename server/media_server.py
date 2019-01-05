@@ -7,12 +7,13 @@ import socket
 import logging
 import threading
 from collections import OrderedDict
+from os.path import abspath, realpath, join, isdir, isfile
 
 class MediaServer:
     def __init__(self, port, password, root=os.getcwd(), no_hidden=True, filetypes=None, controller=None):
         self.port = port                # port to listen on
         self.password = password        # server secret
-        self.root = root                # top level directory of server
+        self.root = abspath(realpath(root)) # top level directory of server
         self.no_hidden = no_hidden      # send / play hidden files
         self.filetypes = filetypes      # array of acceptable filetypes
         self.controller = controller    # MediaController
@@ -112,7 +113,16 @@ class MediaServer:
             # ret / msg will get changed by following cases
             ret, msg = False, None
             if command == "play":
-                ret = self.controller.play(cmd["path"])
+                path = join(self.root, cmd["path"])
+                if path[:len(self.root)] != self.root:
+                    # outside of root
+                    ret, msg = False, "Path out of bounds"
+                elif not isfile(path):
+                    # not a file
+                    ret, msg  = False, "%s is not a file" % cmd["path"]
+                else:
+                    # play the file
+                    ret = self.controller.play(abspath(realpath(path)))
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
             elif command == "stop":
@@ -136,6 +146,8 @@ class MediaServer:
                 threading.Thread(target=self._repeat, args=[cmd],
                         daemon=True).start()
                 ret = True
+            elif command == "list":
+                ret, msg = self._list(cmd["directory"])
             else:
                 ret, msg = False, "Not Implemented"
 
@@ -145,6 +157,24 @@ class MediaServer:
             self._ack(False, "Expection '%s'" % str(e))
         except:
             self._ack(False, "Not Implemented")
+    def _list(self, opath):
+        # list files in self.root/path
+        path = abspath(realpath(join(self.root, opath)))
+        if path[:len(self.root)] != self.root:
+            # outside of root
+            return (False, "Directory out of bounds")
+        if not isdir(path):
+            # not a directory
+            return (False, "%s is not a directory" % opath)
+        entries = os.listdir(path)
+        if self.no_hidden:
+            entries = list(filter(lambda x: x[0] != '.', entries))
+        dirs = list(filter(lambda x: isdir(join(path, x)), entries))
+        files = list(filter(lambda x: isfile(join(path, x)), entries))
+        if self.filetypes and len(self.filetypes) > 0:
+            files = list(filter(lambda x:
+                x.split('.')[-1] in self.filetypes, entries))
+        return (True, {"directories": dirs, "files": files})
     def _repeat(self, cmd):
         delay = 0.1
         speedup = True
