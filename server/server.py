@@ -43,12 +43,12 @@ def parse_args():
 def set_root(args):
     args.root = abspath(realpath((args.root)))
     if not isdir(args.root):
-        print("%s is not a directory or does not exist." % root)
+        logging.info("%s is not a directory or does not exist.", args.root)
         args.root = os.environ.get('HOME', None)
         if args.root is None:
-            print("Cannot find a suitable root directory")
+            logging.error("Cannot find a suitable root directory")
             exit(1)
-        print("Using default root directory: %s" % args.root)
+        logging.info("Using default root directory: %s", args.root)
     args.filetypes = [x for x in args.filetypes.split(',') if len(x) > 0]
 
 def set_mpv_socket(args):
@@ -67,11 +67,6 @@ def set_mpv_socket(args):
         except: pass
     return False
 
-def spawn_mpv(unix_socket):
-    print("No running mpv instance found. Starting mpv...")
-    subprocess.Popen(["mpv", "--no-terminal",
-        "--input-ipc-server", unix_socket, "--idle"])
-
 def main():
     args = parse_args()
 
@@ -81,7 +76,9 @@ def main():
     if not set_mpv_socket(args):
         if args.mpv_socket is None:
             args.mpv_socket = "/tmp/mpvsocket"
-        spawn_mpv(args.mpv_socket)
+        logging.info("No running mpv instance found. Starting mpv...")
+        subprocess.Popen(["mpv", "--no-terminal", "--input-ipc-server",
+            args.mpv_socket, "--idle"])
 
     ms = MediaServer(args.port, args.password, root=args.root,
             no_hidden=not args.hidden, filetypes=args.filetypes,
