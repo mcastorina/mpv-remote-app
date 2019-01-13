@@ -24,7 +24,7 @@ class MediaServer:
         self.sock.bind(('0.0.0.0', self.port))
         # setup history and state
         self.state = 'NORMAL'       # state can be NORMAL or REPEAT
-        self.history_size = 32      # max number of commands to remember
+        self.history_size = 4       # max number of commands to remember
         self.history = OrderedDict()
         # setup pid for daemon
         self.pid = 0
