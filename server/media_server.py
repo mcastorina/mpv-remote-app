@@ -55,7 +55,7 @@ class MediaServer:
     # returns whether the server is running or not
     def is_running(self):
         return self.pid != 0
-    # receives a command and authenticates the message
+    # receives a new command and authenticates the message
     def _recv(self):
         # loop until we receive a valid command
         while True:
@@ -77,22 +77,39 @@ class MediaServer:
                 # set action_id as the time of the request
                 self.action_id = data["time"]
                 logging.info("Received command: \"%s\"", data)
+                if self.action_id in self.history:
+                    self._ack()
+                    continue
                 return data
             except Exception as e:
                 logging.error("Error parsing command: \"%s\"", data)
                 logging.error(str(e))
     # sends response back to requester
-    def _ack(self, success, response):
+    def _ack(self, success=None, response=None):
         # check if action in history
+        try:
+            response = self.history[self.action_id]
+            logging.debug("Found response in history for action_id \"%d\": \"%s\"",
+                self.action_id, response)
+        except:
+            # generate message
+            t = round(time.time() * 1000)
+            msg = json.dumps({"action": self.action_id, "time": t,
+                              "result": success, "message": response})
+            logging.debug("Sending ACK: \"%s\"", msg)
 
-        # generate message
-        t = round(time.time() * 1000)
-        msg = json.dumps({"action": self.action_id, "time": t,
-                          "result": success, "message": response})
-        logging.debug("Sending ACK: \"%s\"", msg)
+            h = hmac.new((self.password + str(t)).encode(), msg.encode()).hexdigest()
+            response = json.dumps({"hmac": h, "message": msg}).encode()
+            # save in history
+            self.history[self.action_id] = response
 
-        h = hmac.new((self.password + str(t)).encode(), msg.encode()).hexdigest()
-        self.sock.sendto(json.dumps({"hmac": h, "message": msg}).encode(), self.client)
+            # clear out old items
+            while len(self.history) > self.history_size:
+                # pop items off in FIFO order
+                self.history.popitem(last=False)
+
+        # send response
+        self.sock.sendto(response, self.client)
 
         # clear client and action_id
         self.client = None
