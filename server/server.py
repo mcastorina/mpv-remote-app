@@ -37,6 +37,8 @@ def parse_args():
                         help="Only send filetypes "
                               "in the comma separated list FILETYPES. "
                               "Blank means no filter.")
+    parser.add_argument("-v", "--verbose", action="count", default=0,
+                        help="Verbose output")
     parser.add_argument("password", help="The password for this server")
     return parser.parse_args()
 
@@ -69,6 +71,13 @@ def set_mpv_socket(args):
 
 def main():
     args = parse_args()
+
+    # set log level
+    # default: WARNING
+    # -v     : INFO
+    # -vv    : DEBUG
+    level = max(logging.WARNING - 10 * args.verbose, 10)
+    logging.getLogger().setLevel(level)
 
     set_root(args)
     # set mpv_socket to currently running instance
