@@ -89,7 +89,7 @@ class MpvController(SocketMediaController):
     def stop(self):
         return self.send_command('stop')
     def seek(self, seconds):
-        return self.send_command('seek', [seconds])
+        return self.send_command('seek %d' % seconds, raw=True)
     def set_volume(self, volume):
         return self.set_property('volume', volume)
     def set_subtitles(self, track):
@@ -149,9 +149,12 @@ class MpvController(SocketMediaController):
         except: return None
 
     # Send command
-    def send_command(self, command, args=[]):
+    def send_command(self, command, args=[], raw=False):
         try:
-            cmd = json.dumps({"command": [command] + args})
+            if raw:
+                cmd = command
+            else:
+                cmd = json.dumps({"command": [command] + args})
             logging.debug("send_command: %s", cmd)
             return self._socat(cmd)
         except: return False

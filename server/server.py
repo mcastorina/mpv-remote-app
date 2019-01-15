@@ -49,7 +49,7 @@ def set_root(args):
         args.root = os.environ.get('HOME', None)
         if args.root is None:
             logging.error("Cannot find a suitable root directory")
-            exit(1)
+            os.exit(1)
         logging.info("Using default root directory: %s", args.root)
     args.filetypes = [x for x in args.filetypes.split(',') if len(x) > 0]
 
