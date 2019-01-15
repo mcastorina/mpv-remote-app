@@ -231,5 +231,5 @@ class MediaServer:
                 counter += 1
                 # speedup every 3 second
                 if (counter * delay) >= 2:
-                    cmd["seconds"] *= 2
+                    cmd["seconds"] = round(cmd["seconds"] * 2.5)
                     counter = 0
