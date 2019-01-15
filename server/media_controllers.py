@@ -175,11 +175,3 @@ class MpvController(SocketMediaController):
             ret = '\n'.join([y for y in ret.split('\n') if filter in y]).strip()
             logging.debug("Filtered response: \"%s\"", ret)
         return ret
-
-# Run command and return (exit code, stdout)
-def _call(args):
-    child = subprocess.Popen(' '.join(args), shell=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = child.communicate()
-    ret = child.poll()
-    return (ret, stdout.decode().strip())
