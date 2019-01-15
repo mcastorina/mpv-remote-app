@@ -123,21 +123,25 @@ class MpvController(SocketMediaController):
     def get_property(self, property):
         try:
             cmd = json.dumps({'command': ['get_property', property]})
-            out = json.loads(self._socat(cmd).split('\n')[0])
+            out = json.loads(self._socat(cmd))
             if out['error'] != 'success':
                 return None
             return out['data']
-        except: return None
+        except Exception as e:
+            logging.debug("get_property exception: %s", str(e))
+            return None
 
     # Set the property
     def set_property(self, property, value):
         try:
             cmd = json.dumps({'command': ['set_property', property, value]})
-            out = json.loads(self._socat(cmd).split('\n')[0])
+            out = json.loads(self._socat(cmd))
             if out['error'] != 'success':
                 return False
             return True
-        except: return False
+        except Exception as e:
+            logging.debug("set_property exception: %s", str(e))
+            return False
 
     # Show the property (on OSD)
     def show_property(self, property, pre=None, post='', duration=1000):
@@ -146,7 +150,9 @@ class MpvController(SocketMediaController):
                 pre = property.title() + ': '
             arg = '%s${%s}%s' % (pre, property, post)
             return self._socat('show_text "%s" %d' % (arg, duration))
-        except: return None
+        except Exception as e:
+            logging.debug("show_property exception: %s", str(e))
+            return None
 
     # Send command
     def send_command(self, command, args=[], raw=False):
@@ -157,11 +163,18 @@ class MpvController(SocketMediaController):
                 cmd = json.dumps({"command": [command] + args})
             logging.debug("send_command: %s", cmd)
             return self._socat(cmd)
-        except: return False
+        except Exception as e:
+            logging.debug("send_command exception: %s", str(e))
+            return False
 
-    def _socat(self, command):
+    def _socat(self, command, filter='error'):
         self.send(command + '\n')
-        return self.recv(0.05)
+        ret = self.recv(0.05)
+        logging.debug("Mpv response: \"%s\"", ret)
+        if filter is not None:
+            ret = '\n'.join([y for y in ret.split('\n') if filter in y]).strip()
+            logging.debug("Filtered response: \"%s\"", ret)
+        return ret
 
 # Run command and return (exit code, stdout)
 def _call(args):
