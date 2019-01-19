@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                setProperty(null, "volume", seekBar.getProgress());
+                sendCommand(null, "set_volume", "volume", seekBar.getProgress());
                 showProperty("volume", null, "%");
             }
         });
@@ -80,7 +80,11 @@ public class MainActivity extends Activity {
             setOnTouchListener(new View.OnTouchListener() {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        sendCommand(null, "repeat", "seek", "5");
+                        Object[] args = new Object[3];
+                        args[0] = "seek";
+                        args[1] = "seconds";
+                        args[2] = 5;
+                        sendCommand(null, "repeat", "args", args);
                     }
                     else if (event.getAction() == MotionEvent.ACTION_UP) {
                         sendCommand(null, "stop");
@@ -92,7 +96,11 @@ public class MainActivity extends Activity {
             setOnTouchListener(new View.OnTouchListener() {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        sendCommand(null, "repeat", "seek", "-5");
+                        Object[] args = new Object[3];
+                        args[0] = "seek";
+                        args[1] = "seconds";
+                        args[2] = -5;
+                        sendCommand(null, "repeat", "args", args);
                     }
                     else if (event.getAction() == MotionEvent.ACTION_UP) {
                         sendCommand(null, "stop");
@@ -145,31 +153,26 @@ public class MainActivity extends Activity {
     }
     public void playPauseButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
-        button.setProperty("pause", !button.getState());
+        button.sendCommand("pause", "state", !button.getState());
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
-        button.setProperty("sub", button.isChecked() ? 1 : 0);
+        button.sendCommand("set_subtitles", "track", button.isChecked() ? 1 : 0);
     }
     public void fullScreenButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;
-        button.setProperty("fullscreen", !button.getState());
+        button.sendCommand("fullscreen", "state", !button.getState());
     }
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(mDrawerList);
     }
 
-    private void sendCommand(Callback cb, String command, String ... args) {
+    private void sendCommand(Callback cb, String command, Object... pairs) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
-        map.put("args", args);
-        send(map, cb);
-    }
-    private void setProperty(Callback cb, String property, Object value) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        map.put("command", "set");
-        map.put("property", property);
-        map.put("value", value);
+        for (int i = 0; i < pairs.length - 1; i += 2) {
+            map.put((String)pairs[i], pairs[i+1]);
+        }
         send(map, cb);
     }
     private void showProperty(String property, String pre, String post) {

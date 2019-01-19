@@ -40,10 +40,10 @@ do not recommend it.
 git clone https://github.com/mcastorina/mpv-remote-app
 ```
 
-2. Install the python requirements
+2. Install the python 3 requirements
 
 ```
-pip install -r requirements.txt     # install for python 3
+pip install psutil
 ```
 
 3. Install the Android application
@@ -66,7 +66,7 @@ mpv --input-ipc-server /tmp/mpvsocket --idle
 ```
 
 ```
-python server.py p4ssw0rd --no-hidden
+python server/server.py p4ssw0rd
 ```
 
 ### Connect
@@ -84,11 +84,3 @@ up to control the movie I am watching.
 * Android (android-tools)
 * Python 3
   * psutil
-
-## TODO
-
-* Read / write directly to IPC socket
-* Library browsing
-    * Caching
-    * Save path
-* Saved configurations
