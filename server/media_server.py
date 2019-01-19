@@ -89,7 +89,7 @@ class MediaServer:
         # check if action in history
         try:
             response = self.history[self.action_id]
-            logging.debug("Found response in history for action_id \"%d\": \"%s\"",
+            logging.debug("Found response in history for action_id \"%s\": \"%s\"",
                 self.action_id, response)
         except:
             # generate message
