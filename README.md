@@ -43,7 +43,7 @@ git clone https://github.com/mcastorina/mpv-remote-app
 2. Install the python requirements
 
 ```
-pip install -r requirements.txt
+pip install psutil
 ```
 
 3. Install the Android application
@@ -60,7 +60,7 @@ Running the server will automatically connect to an existing mpv instance
 or spawn a new one if none found. Use `Ctrl+C` to kill the server.
 
 ```
-python server.py p4ssw0rd --no-hidden
+python server/server.py p4ssw0rd
 ```
 
 ### Connect
@@ -78,11 +78,3 @@ up to control the movie I am watching.
 * Android (android-tools)
 * Python 3
   * psutil
-
-## TODO
-
-* Read / write directly to IPC socket
-* Library browsing
-    * Caching
-    * Save path
-* Saved configurations
