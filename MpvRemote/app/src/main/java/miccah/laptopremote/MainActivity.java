@@ -157,7 +157,7 @@ public class MainActivity extends Activity {
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
-        button.sendCommand("set_subtitles", "track", button.isChecked() ? 1 : 0);
+        button.sendCommand("set_subtitles", "track", button.isChecked() ? Settings.subtitle : 0);
     }
     public void fullScreenButton(View view) {
         BackgroundImageButton button = (BackgroundImageButton)view;

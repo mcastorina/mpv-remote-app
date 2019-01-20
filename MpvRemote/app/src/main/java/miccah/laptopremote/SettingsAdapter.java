@@ -44,6 +44,8 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.ipAddress = ipAddress.substring(0, ipAddress.lastIndexOf('.')+1);
         Settings.port = new Integer(28899);
         Settings.passwd = "";
+        Settings.audio = 1;
+        Settings.subtitle = 1;
 
         /* Search through subnet to see if the default port is running a server */
         for (int i = 1; i < 255; i++) {
@@ -78,6 +80,24 @@ public class SettingsAdapter extends BaseAdapter {
         );
         myItems.add(
             new ListItem(Settings.passwd, "Password", true, InputType.TYPE_CLASS_TEXT)
+        );
+        myItems.add(
+            new ListItem(null, null, false, InputType.TYPE_NULL)
+        );
+        myItems.add(
+            new ListItem(null, null, false, InputType.TYPE_NULL)
+        );
+        myItems.add(
+            new ListItem(Settings.audio.toString(), "Audio Track Number", true, InputType.TYPE_CLASS_NUMBER)
+        );
+        myItems.add(
+            new ListItem(null, "Audio Track", false, InputType.TYPE_NULL)
+        );
+        myItems.add(
+            new ListItem(Settings.subtitle.toString(), "Subtitle Track Number", true, InputType.TYPE_CLASS_NUMBER)
+        );
+        myItems.add(
+            new ListItem(null, "Subtitle Track", false, InputType.TYPE_NULL)
         );
         notifyDataSetChanged();
     }
@@ -178,6 +198,38 @@ public class SettingsAdapter extends BaseAdapter {
         else if (hint.equals(myItems.get(4).hint)) {
             // Password
             Settings.passwd = value;
+        }
+        else if (hint.equals(myItems.get(7).hint)) {
+            // Audio Track
+            Settings.audio = Integer.parseInt(value);
+            // TODO: send track once connected
+            sendCommand("set_audio", "track", Settings.audio);
+        }
+        else if (hint.equals(myItems.get(9).hint)) {
+            // Subtitle Track
+            Settings.subtitle = Integer.parseInt(value);
+            // TODO: send track once connected
+            sendCommand("set_subtitles", "track", Settings.subtitle);
+        }
+    }
+
+    private void sendCommand(String cmd, Object... pairs) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", cmd);
+        for (int i = 0; i < pairs.length - 1; i += 2) {
+            map.put((String)pairs[i], pairs[i+1]);
+        }
+
+        send(map);
+    }
+    private void send(HashMap<String, Object> cmd) {
+        // Check settings
+        if (Settings.ipAddress != null &&
+            Settings.port      != null &&
+            Settings.passwd    != null) {
+            new UDPPacket(Settings.ipAddress,
+                          Settings.port,
+                          Settings.passwd, null).execute(cmd);
         }
     }
 }

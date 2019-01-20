@@ -155,6 +155,8 @@ class MediaServer:
                 ret = self.controller.set_volume(cmd["volume"])
             elif command == "set_subtitles":
                 ret = self.controller.set_subtitles(cmd["track"])
+            elif command == "set_audio":
+                ret = self.controller.set_audio(cmd["track"])
             elif command == "fullscreen":
                 ret = self.controller.fullscreen(cmd["state"])
             elif command == "mute":
