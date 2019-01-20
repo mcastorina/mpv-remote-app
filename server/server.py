@@ -37,6 +37,8 @@ def parse_args():
                         help="Only send filetypes "
                               "in the comma separated list FILETYPES. "
                               "Blank means no filter.")
+    parser.add_argument("-F", "--daemon", action="store_true",
+                        help="Run the server in the background")
     parser.add_argument("-v", "--verbose", action="count", default=0,
                         help="Verbose output")
     parser.add_argument("password", help="The password for this server")
@@ -92,6 +94,6 @@ def main():
     ms = MediaServer(args.port, args.password, root=args.root,
             no_hidden=not args.hidden, filetypes=args.filetypes,
             controller=MpvController(args.mpv_socket))
-    ms.run()
+    ms.run(daemon=args.daemon)
 
 if __name__ == "__main__": main()
