@@ -100,13 +100,14 @@ class MediaServer:
 
             h = hmac.new((self.password + str(t)).encode(), msg.encode()).hexdigest()
             response = json.dumps({"hmac": h, "message": msg}).encode()
-            # save in history
-            self.history[self.action_id] = response
+            if self.action_id is not None:
+                # save in history
+                self.history[self.action_id] = response
 
-            # clear out old items
-            while len(self.history) > self.history_size:
-                # pop items off in FIFO order
-                self.history.popitem(last=False)
+                # clear out old items
+                while len(self.history) > self.history_size:
+                    # pop items off in FIFO order
+                    self.history.popitem(last=False)
 
         # send response
         self.sock.sendto(response, self.client)
