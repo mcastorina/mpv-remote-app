@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
@@ -74,9 +75,9 @@ public class SettingsAdapter extends BaseAdapter {
         myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.passwd,            "Password",     InputType.TYPE_CLASS_TEXT) );
         myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
         myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
-        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.audio.toString(),  "Audio Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.SPINNER,    Settings.audio.toString(),  "Audio Track Number", InputType.TYPE_CLASS_NUMBER) );
         myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Audio Track",  InputType.TYPE_NULL) );
-        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.subtitle.toString(),  "Subtitle Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.SPINNER,    Settings.subtitle.toString(),  "Subtitle Track Number", InputType.TYPE_CLASS_NUMBER) );
         myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Subtitle Track", InputType.TYPE_NULL) );
 
         notifyDataSetChanged();
@@ -103,12 +104,23 @@ public class SettingsAdapter extends BaseAdapter {
                 convertView.findViewById(R.id.item_switcher);
 
             if (myItems.get(position).type == ListItem.TYPE.EDIT_TEXT) {
-                if (holder.switcher.getDisplayedChild() == 0)
+                while (holder.switcher.getDisplayedChild() != 1)
                     holder.switcher.showNext();
                 holder.caption = (TextView)
                     holder.switcher.findViewById(R.id.item_edittext);
                 holder.text = (EditText)
                     holder.switcher.findViewById(R.id.item_edittext);
+            }
+            else if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
+                while (holder.switcher.getDisplayedChild() != 2)
+                    holder.switcher.showNext();
+                holder.spinner = (Spinner)
+                    holder.switcher.findViewById(R.id.item_spinner);
+                // create a list of items for the spinner
+                String[] items = new String[]{"1", "2", "three"};
+                // create an adapter to describe how the items are displayed
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, items);
+                holder.spinner.setAdapter(adapter);
             }
             else {
                 holder.caption = (TextView)
@@ -118,6 +130,10 @@ public class SettingsAdapter extends BaseAdapter {
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder)convertView.getTag();
+        }
+
+        if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
+            return convertView;
         }
 
         // Fill TextView with the value you have in data source
