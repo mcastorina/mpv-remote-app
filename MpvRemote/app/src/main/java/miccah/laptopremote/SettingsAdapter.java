@@ -14,7 +14,8 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
-import android.widget.ViewSwitcher;
+import android.widget.Spinner;
+import android.widget.ViewFlipper;
 import android.text.format.Formatter;
 import android.text.InputType;
 import android.net.wifi.WifiManager;
@@ -119,7 +120,7 @@ public class SettingsAdapter extends BaseAdapter {
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = mInflater.inflate(R.layout.settings_item, null);
-            holder.switcher = (ViewSwitcher)
+            holder.switcher = (ViewFlipper)
                 convertView.findViewById(R.id.item_switcher);
 
             if (myItems.get(position).focusable) {
@@ -235,7 +236,7 @@ public class SettingsAdapter extends BaseAdapter {
 }
 
 class ViewHolder {
-    ViewSwitcher switcher;
+    ViewFlipper switcher;
     TextView caption;
     EditText text;
 }

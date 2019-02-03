@@ -10,7 +10,7 @@
         android:layout_width="0px"
         android:layout_height="0px" />
 
-    <ViewSwitcher
+    <ViewFlipper
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/item_switcher"
         android:layout_width="match_parent"
@@ -27,6 +27,11 @@
             android:textColor="#ffffff"
             android:textCursorDrawable="@null" />
 
-    </ViewSwitcher>
+        <Spinner android:id="@+id/item_spinner"
+            android:layout_height="wrap_content" android:layout_width="fill_parent"
+            android:layout_marginLeft="2dip" android:singleLine="true"
+            android:textColor="#ffffff" />
+
+    </ViewFlipper>
 
 </LinearLayout>
