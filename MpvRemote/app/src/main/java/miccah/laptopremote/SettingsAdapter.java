@@ -67,39 +67,18 @@ public class SettingsAdapter extends BaseAdapter {
         }
 
         /* Initialize list (Text, Hint, Focusable, InputType) */
-        myItems.add(
-            new ListItem(null, "Settings", false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.ipAddress, "IP Address", true, InputType.TYPE_CLASS_TEXT)
-        );
-        myItems.add(
-            new ListItem(Settings.port.toString(), "Port", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.passwd, "Password", true, InputType.TYPE_CLASS_TEXT)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.audio.toString(), "Audio Track Number", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, "Audio Track", false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.subtitle.toString(), "Subtitle Track Number", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, "Subtitle Track", false, InputType.TYPE_NULL)
-        );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Settings",     InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.ipAddress,         "IP Address",   InputType.TYPE_CLASS_TEXT) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.port.toString(),   "Port",         InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.passwd,            "Password",     InputType.TYPE_CLASS_TEXT) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.audio.toString(),  "Audio Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Audio Track",  InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.subtitle.toString(),  "Subtitle Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Subtitle Track", InputType.TYPE_NULL) );
+
         notifyDataSetChanged();
     }
 
@@ -123,7 +102,7 @@ public class SettingsAdapter extends BaseAdapter {
             holder.switcher = (ViewFlipper)
                 convertView.findViewById(R.id.item_switcher);
 
-            if (myItems.get(position).focusable) {
+            if (myItems.get(position).type == ListItem.TYPE.EDIT_TEXT) {
                 if (holder.switcher.getDisplayedChild() == 0)
                     holder.switcher.showNext();
                 holder.caption = (TextView)
@@ -144,7 +123,7 @@ public class SettingsAdapter extends BaseAdapter {
         // Fill TextView with the value you have in data source
         holder.caption.setText(myItems.get(position).caption);
         holder.caption.setHint(myItems.get(position).hint);
-        holder.caption.setFocusable(myItems.get(position).focusable);
+        holder.caption.setFocusable(myItems.get(position).type == ListItem.TYPE.EDIT_TEXT);
         holder.caption.setId(position);
         holder.caption.setInputType(myItems.get(position).inputType);
         if (holder.text != null)
@@ -239,18 +218,28 @@ class ViewHolder {
     ViewFlipper switcher;
     TextView caption;
     EditText text;
+    Spinner spinner;
 }
 
 class ListItem {
-    String caption;
-    String hint;
-    boolean focusable;
-    int inputType;
+    TYPE type;              // type of item
+    /* text options */
+    String caption;         // user input
+    String hint;            // preview when view is empty
+    int inputType;          // input type for text input
+    /* spinner options */
 
-    public ListItem(String c, String h, boolean f, int i) {
+    public enum TYPE {
+        NULL,
+        TEXT_VIEW,
+        EDIT_TEXT,
+        SPINNER;
+    }
+
+    public ListItem(TYPE t, String c, String h, int i) {
+        type = t;
         caption = c;
         hint = h;
-        focusable = f;
         inputType = i;
     }
 }
