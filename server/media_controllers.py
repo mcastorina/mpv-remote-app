@@ -40,12 +40,17 @@ class MediaController:
         raise Exception('Not Implemented')
     def get_subtitles(self):
         raise Exception('Not Implemented')
-    def get_audio(self, track):
+    def get_audio(self):
         raise Exception('Not Implemented')
     def get_fullscreen(self):
         raise Exception('Not Implemented')
     def get_mute(self):
         raise Exception('Not Implemented')
+    def get_subtitle_tracks(self):
+        raise Exception('Not Implemented')
+    def get_audio_tracks(self):
+        raise Exception('Not Implemented')
+
 
 class SocketMediaController(MediaController):
     def __init__(self, sock_addr):
@@ -118,6 +123,10 @@ class MpvController(SocketMediaController):
         return self.get_property('fullscreen')
     def get_mute(self):
         return self.get_property('mute')
+    def get_subtitle_tracks(self):
+        return self._get_tracks('sub', ['id', 'lang'])
+    def get_audio_tracks(self):
+        return self._get_tracks('audio', ['id', 'lang'])
 
     # Get the property
     def get_property(self, property):
@@ -175,3 +184,17 @@ class MpvController(SocketMediaController):
             ret = '\n'.join([y for y in ret.split('\n') if filter in y]).strip()
             logging.debug("Filtered response: \"%s\"", ret)
         return ret
+
+    def _get_tracks(self, track_type, info, fmt=None):
+        tracks = []
+        if not isinstance(info, list):
+            info = [info]
+        if fmt is None:
+            start = '{}:' if len(info) > 1 else '{}'
+            fmt = start + ' {}' * (len(info) - 1)
+
+        for i in range(int(self.get_property("track-list/count"))):
+            if self.get_property("track-list/%d/type" % i) == track_type:
+                data = [self.get_property("track-list/%d/%s" % (i, inf)) for inf in info]
+                tracks += [fmt.format(*data)]
+        return tracks
