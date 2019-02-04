@@ -179,7 +179,8 @@ class MediaServer:
             if ack: self._ack(ret, msg)
         except KeyError as e:
             self._ack(False, "Exception '%s'" % str(e))
-        except:
+        except Exception as e:
+            logging.debug("%s", e)
             self._ack(False, "Not Implemented")
     def _list(self, opath):
         # list files in self.root/path
