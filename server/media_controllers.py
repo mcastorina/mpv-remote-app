@@ -193,7 +193,17 @@ class MpvController(SocketMediaController):
             start = '{}:' if len(info) > 1 else '{}'
             fmt = start + ' {}' * (len(info) - 1)
 
-        for i in range(int(self.get_property("track-list/count"))):
+        # TODO: remove this retry logic
+        n = 0
+        for i in range(3):
+            try:
+                n = int(self.get_property("track-list/count"))
+                break
+            except: pass
+            import time
+            time.sleep(0.1)
+
+        for i in range(n):
             if self.get_property("track-list/%d/type" % i) == track_type:
                 data = [self.get_property("track-list/%d/%s" % (i, inf)) for inf in info]
                 tracks += [fmt.format(*data)]

@@ -142,6 +142,17 @@ class MediaServer:
                 else:
                     # play the file
                     ret = self.controller.play(abspath(realpath(path)))
+                    if json.loads(ret)["error"] == "success":
+                        # save available audio and subtitle tracks
+                        # TODO: sometimes this fails due to opening too soon
+                        # temporary fix: retry in _get_tracks
+                        tracks = {}
+                        tracks["subtitle"] = self.controller.get_subtitle_tracks()
+                        tracks["audio"] = self.controller.get_audio_tracks()
+                        # insert tracks into return
+                        ret = json.loads(ret)
+                        ret["tracks"] = tracks
+                        ret = json.dumps(ret)
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
             elif command == "stop":
