@@ -171,7 +171,7 @@ class MpvController(SocketMediaController):
             else:
                 cmd = json.dumps({"command": [command] + args})
             logging.debug("send_command: %s", cmd)
-            return self._socat(cmd)
+            return json.loads(self._socat(cmd))['error'] == 'success'
         except Exception as e:
             logging.debug("send_command exception: %s", str(e))
             return False
@@ -201,7 +201,7 @@ class MpvController(SocketMediaController):
                 break
             except: pass
             import time
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         for i in range(n):
             if self.get_property("track-list/%d/type" % i) == track_type:
