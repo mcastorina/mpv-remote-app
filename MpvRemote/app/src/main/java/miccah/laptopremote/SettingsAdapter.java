@@ -48,6 +48,8 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.passwd = "";
         Settings.audio = 1;
         Settings.subtitle = 1;
+        Settings.audio_tracks = new ArrayList<String>();    Settings.audio_tracks.add("1");
+        Settings.subtitle_tracks = new ArrayList<String>(); Settings.subtitle_tracks.add("1");
 
         /* Search through subnet to see if the default port is running a server */
         for (int i = 1; i < 255; i++) {
@@ -116,11 +118,17 @@ public class SettingsAdapter extends BaseAdapter {
                     holder.switcher.showNext();
                 holder.spinner = (Spinner)
                     holder.switcher.findViewById(R.id.item_spinner);
-                // create a list of items for the spinner
-                String[] items = new String[]{"1", "2", "three"};
                 // create an adapter to describe how the items are displayed
-                ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, items);
-                holder.spinner.setAdapter(adapter);
+                holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item);
+                if (position == 7) {
+                    // audio
+                    holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, Settings.audio_tracks);
+                }
+                else if (position == 9) {
+                    // subtitle
+                    holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, Settings.subtitle_tracks);
+                }
+                holder.spinner.setAdapter(holder.adapter);
             }
             else {
                 holder.caption = (TextView)
@@ -133,6 +141,7 @@ public class SettingsAdapter extends BaseAdapter {
         }
 
         if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
+            holder.adapter.notifyDataSetChanged();
             return convertView;
         }
 
@@ -235,6 +244,7 @@ class ViewHolder {
     TextView caption;
     EditText text;
     Spinner spinner;
+    ArrayAdapter<String> adapter;
 }
 
 class ListItem {
