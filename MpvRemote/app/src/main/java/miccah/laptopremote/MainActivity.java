@@ -28,7 +28,6 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
@@ -38,9 +37,9 @@ public class MainActivity extends Activity {
 
         /* Setup side menu */
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setItemsCanFocus(true);
-        mDrawerList.setAdapter(new SettingsAdapter(this));
+        Settings.mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        Settings.mDrawerList.setItemsCanFocus(true);
+        Settings.mDrawerList.setAdapter(new SettingsAdapter(this));
 
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,                  /* host Activity */
@@ -129,7 +128,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         // If the nav drawer is open, hide action items related to the content view
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(Settings.mDrawerList);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -164,7 +163,7 @@ public class MainActivity extends Activity {
         button.sendCommand("fullscreen", "state", !button.getState());
     }
     public void settingsButton(View view) {
-        mDrawerLayout.openDrawer(mDrawerList);
+        mDrawerLayout.openDrawer(Settings.mDrawerList);
     }
 
     private void sendCommand(Callback cb, String command, Object... pairs) {

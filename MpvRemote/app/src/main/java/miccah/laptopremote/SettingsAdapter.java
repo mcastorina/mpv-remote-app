@@ -139,6 +139,7 @@ public class SettingsAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder)convertView.getTag();
         }
+        myItems.get(position).holder = holder;
 
         if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
             holder.adapter.notifyDataSetChanged();
@@ -187,6 +188,14 @@ public class SettingsAdapter extends BaseAdapter {
         });
 
         return convertView;
+    }
+
+    public void refresh() {
+        // update spinners
+        myItems.get(7).holder.spinner.setSelection(0);
+        myItems.get(9).holder.spinner.setSelection(0);
+        myItems.get(7).holder.adapter.notifyDataSetChanged();
+        myItems.get(9).holder.adapter.notifyDataSetChanged();
     }
 
     private void setInput(TextView view) {
@@ -249,6 +258,7 @@ class ViewHolder {
 
 class ListItem {
     TYPE type;              // type of item
+    ViewHolder holder;      // to get access
     /* text options */
     String caption;         // user input
     String hint;            // preview when view is empty
@@ -267,5 +277,6 @@ class ListItem {
         caption = c;
         hint = h;
         inputType = i;
+        holder = null;
     }
 }

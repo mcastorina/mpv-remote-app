@@ -131,6 +131,7 @@ public class LibraryActivity extends Activity
                     Settings.subtitle_tracks.add(stracks.getString(i));
                 for (int i = 0; i < atracks.length(); i++)
                     Settings.audio_tracks.add(atracks.getString(i));
+                ((SettingsAdapter) Settings.mDrawerList.getAdapter()).refresh();
             }
             catch (JSONException e) {};
         }

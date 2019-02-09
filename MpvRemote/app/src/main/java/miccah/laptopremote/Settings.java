@@ -1,5 +1,7 @@
 package miccah.mpvremote;
 
+import android.widget.ListView;
+
 import java.util.ArrayList;
 
 public class Settings {
@@ -10,4 +12,5 @@ public class Settings {
     protected static Integer subtitle;
     protected static ArrayList<String> audio_tracks;
     protected static ArrayList<String> subtitle_tracks;
+    protected static ListView mDrawerList;
 }
