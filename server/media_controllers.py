@@ -157,6 +157,8 @@ class MpvController(SocketMediaController):
         try:
             if pre is None:
                 pre = property.title() + ': '
+            if post is None:
+                post = ''
             arg = '%s${%s}%s' % (pre, property, post)
             return self._socat('show_text "%s" %d' % (arg, duration))
         except Exception as e:

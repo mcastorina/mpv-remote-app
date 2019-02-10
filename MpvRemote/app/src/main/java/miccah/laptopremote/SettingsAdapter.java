@@ -17,6 +17,8 @@ import android.widget.Toast;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.ViewFlipper;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.text.format.Formatter;
 import android.text.InputType;
 import android.net.wifi.WifiManager;
@@ -143,6 +145,44 @@ public class SettingsAdapter extends BaseAdapter {
 
         if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
             holder.adapter.notifyDataSetChanged();
+            holder.spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    if (selectedItemView == null || parentView == null) {
+                        return;
+                    }
+                    if (myItems.get(7).holder == null || myItems.get(9).holder == null) {
+                        return;
+                    }
+
+                    Integer value = 1;
+                    String selection = ((TextView) selectedItemView).getText().toString();
+                    Spinner spinner = (Spinner) parentView;
+                    try {
+                        value = Integer.parseInt(selection.split(":")[0]);
+                    }
+                    catch (Exception e) {}
+                    if (spinner.equals(myItems.get(7).holder.spinner)) {
+                        // Audio Track
+                        Settings.audio = value;
+                        // TODO: send track once connected
+                        sendCommand("set_audio", "track", Settings.audio);
+                        showProperty("audio", null, null);
+                    }
+                    else if (spinner.equals(myItems.get(9).holder.spinner)) {
+                        // Subtitle Track
+                        Settings.subtitle = value;
+                        // TODO: send track once connected
+                        sendCommand("set_subtitles", "track", Settings.subtitle);
+                        showProperty("sub", null, null);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                }
+
+            });
             return convertView;
         }
 
@@ -213,18 +253,15 @@ public class SettingsAdapter extends BaseAdapter {
             // Password
             Settings.passwd = value;
         }
-        else if (hint.equals(myItems.get(7).hint)) {
-            // Audio Track
-            Settings.audio = Integer.parseInt(value);
-            // TODO: send track once connected
-            sendCommand("set_audio", "track", Settings.audio);
-        }
-        else if (hint.equals(myItems.get(9).hint)) {
-            // Subtitle Track
-            Settings.subtitle = Integer.parseInt(value);
-            // TODO: send track once connected
-            sendCommand("set_subtitles", "track", Settings.subtitle);
-        }
+    }
+
+    private void showProperty(String property, String pre, String post) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", "show");
+        map.put("property", property);
+        map.put("pre", pre);
+        map.put("post", post);
+        send(map);
     }
 
     private void sendCommand(String cmd, Object... pairs) {
