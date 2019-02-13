@@ -56,7 +56,8 @@ public class LibraryActivity extends Activity
                     cmd.put("path", data.parent + "/" + item.name);
                     new UDPPacket(Settings.ipAddress,
                             Settings.port,
-                            Settings.passwd, LibraryActivity.this).execute(cmd);
+                            Settings.passwd, LibraryActivity.this,
+                            true, 1500).execute(cmd);
                     finish();
                 }
             }
