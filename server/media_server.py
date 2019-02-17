@@ -218,7 +218,7 @@ class MediaServer:
             if "post" in command: post = command["post"]
             return self.controller.show_property(command["property"], pre, post)
     def _repeat(self, cmd):
-        delay = 0.1
+        delay = 0.05
         speedup = True
         if "delay" in cmd:
             delay = cmd["delay"] / 1000
@@ -235,6 +235,9 @@ class MediaServer:
         for i in range(0, len(pairs), 2):
             cmd[pairs[i]] = pairs[i+1]
 
+        # mute audio
+        self.controller.mute()
+
         counter = 0
         while self.state == 'REPEAT':
             logging.debug("REPEAT: %s", str(cmd))
@@ -242,7 +245,10 @@ class MediaServer:
             time.sleep(delay)
             if speedup:
                 counter += 1
-                # speedup every 3 second
+                # speedup every 2 second
                 if (counter * delay) >= 2:
                     cmd["seconds"] = round(cmd["seconds"] * 2.5)
                     counter = 0
+
+        # unmute audio
+        self.controller.unmute()
