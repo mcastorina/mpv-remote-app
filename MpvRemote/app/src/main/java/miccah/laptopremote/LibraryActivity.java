@@ -21,7 +21,7 @@ import android.widget.AdapterView;
 import android.view.View;
 
 public class LibraryActivity extends Activity
-    implements LoaderManager.LoaderCallbacks<DirectoryListing> {
+    implements LoaderManager.LoaderCallbacks<DirectoryListing>, Callback {
 
     private ProgressDialog mDialog;
     private ArrayList<LibraryItem> items;
@@ -50,16 +50,13 @@ public class LibraryActivity extends Activity
                             null, LibraryActivity.this);
                 }
                 else if (item.type == LibraryItem.FileType.FILE) {
-                    Toast.makeText(getApplicationContext(),
-                            "Playing " + item.name,
-                            Toast.LENGTH_SHORT).show();
                     /* Construct "play" command */
                     HashMap<String, Object> cmd = new HashMap<String, Object>();
                     cmd.put("command", "play");
                     cmd.put("path", data.parent + "/" + item.name);
                     new UDPPacket(Settings.ipAddress,
                             Settings.port,
-                            Settings.passwd, null).execute(cmd);
+                            Settings.passwd, LibraryActivity.this).execute(cmd);
                     finish();
                 }
             }
@@ -113,6 +110,40 @@ public class LibraryActivity extends Activity
         // FIXME: use hash code and get load caching to work
         return count++;
         // return path.hashCode();
+    }
+
+    public void callback(boolean result, JSONObject obj) {
+        boolean success = false;
+        try {success = obj.getBoolean("result");} catch (Exception e) {}
+        if (result && success) {
+            try {
+                obj = new JSONObject(obj.getString("message"));
+                // this will cause an exception when message: null
+                // which is the case for "Playing"
+                JSONArray stracks = obj.getJSONArray("subtitle");
+                JSONArray atracks = obj.getJSONArray("audio");
+
+                // clear audio and subtitle tracks
+                Settings.subtitle_tracks.clear();
+                Settings.audio_tracks.clear();
+
+                for (int i = 0; i < stracks.length(); i++)
+                    Settings.subtitle_tracks.add(stracks.getString(i));
+                for (int i = 0; i < atracks.length(); i++)
+                    Settings.audio_tracks.add(atracks.getString(i));
+                ((SettingsAdapter) Settings.mDrawerList.getAdapter()).refresh();
+            }
+            catch (JSONException e) {
+                Toast.makeText(getApplicationContext(),
+                        "Playing", Toast.LENGTH_SHORT).show();
+                HashMap<String, Object> cmd = new HashMap<String, Object>();
+                cmd.put("command", "tracks");
+                new UDPPacket(Settings.ipAddress,
+                        Settings.port,
+                        Settings.passwd,
+                        this, true, 2000).execute(cmd);
+            };
+        }
     }
 }
 

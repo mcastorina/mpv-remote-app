@@ -172,6 +172,15 @@ class MediaServer:
             elif command == "show":
                 # display text on screen
                 ret = self._show(cmd)
+            elif command == "tracks":
+                # return audio and subtitle tracks
+                try:
+                    msg = {"subtitle": self.controller.get_subtitle_tracks(),
+                           "audio": self.controller.get_audio_tracks()}
+                    ret = True
+                except:
+                    msg = None
+                    ret = False
             else:
                 ret, msg = False, "Not Implemented"
 
@@ -179,7 +188,8 @@ class MediaServer:
             if ack: self._ack(ret, msg)
         except KeyError as e:
             self._ack(False, "Exception '%s'" % str(e))
-        except:
+        except Exception as e:
+            logging.debug("%s", e)
             self._ack(False, "Not Implemented")
     def _list(self, opath):
         # list files in self.root/path

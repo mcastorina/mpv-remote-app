@@ -11,10 +11,14 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
-import android.widget.ViewSwitcher;
+import android.widget.Spinner;
+import android.widget.ViewFlipper;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.text.format.Formatter;
 import android.text.InputType;
 import android.net.wifi.WifiManager;
@@ -46,6 +50,8 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.passwd = "";
         Settings.audio = 1;
         Settings.subtitle = 1;
+        Settings.audio_tracks = new ArrayList<String>();    Settings.audio_tracks.add("1");
+        Settings.subtitle_tracks = new ArrayList<String>(); Settings.subtitle_tracks.add("1");
 
         /* Search through subnet to see if the default port is running a server */
         for (int i = 1; i < 255; i++) {
@@ -66,39 +72,18 @@ public class SettingsAdapter extends BaseAdapter {
         }
 
         /* Initialize list (Text, Hint, Focusable, InputType) */
-        myItems.add(
-            new ListItem(null, "Settings", false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.ipAddress, "IP Address", true, InputType.TYPE_CLASS_TEXT)
-        );
-        myItems.add(
-            new ListItem(Settings.port.toString(), "Port", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.passwd, "Password", true, InputType.TYPE_CLASS_TEXT)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(null, null, false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.audio.toString(), "Audio Track Number", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, "Audio Track", false, InputType.TYPE_NULL)
-        );
-        myItems.add(
-            new ListItem(Settings.subtitle.toString(), "Subtitle Track Number", true, InputType.TYPE_CLASS_NUMBER)
-        );
-        myItems.add(
-            new ListItem(null, "Subtitle Track", false, InputType.TYPE_NULL)
-        );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Settings",     InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.ipAddress,         "IP Address",   InputType.TYPE_CLASS_TEXT) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.port.toString(),   "Port",         InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.passwd,            "Password",     InputType.TYPE_CLASS_TEXT) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.NULL,       null,                       null,           InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.SPINNER,    Settings.audio.toString(),  "Audio Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Audio Track",  InputType.TYPE_NULL) );
+        myItems.add( new ListItem(ListItem.TYPE.SPINNER,    Settings.subtitle.toString(),  "Subtitle Track Number", InputType.TYPE_CLASS_NUMBER) );
+        myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Subtitle Track", InputType.TYPE_NULL) );
+
         notifyDataSetChanged();
     }
 
@@ -119,16 +104,33 @@ public class SettingsAdapter extends BaseAdapter {
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = mInflater.inflate(R.layout.settings_item, null);
-            holder.switcher = (ViewSwitcher)
+            holder.switcher = (ViewFlipper)
                 convertView.findViewById(R.id.item_switcher);
 
-            if (myItems.get(position).focusable) {
-                if (holder.switcher.getDisplayedChild() == 0)
+            if (myItems.get(position).type == ListItem.TYPE.EDIT_TEXT) {
+                while (holder.switcher.getDisplayedChild() != 1)
                     holder.switcher.showNext();
                 holder.caption = (TextView)
                     holder.switcher.findViewById(R.id.item_edittext);
                 holder.text = (EditText)
                     holder.switcher.findViewById(R.id.item_edittext);
+            }
+            else if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
+                while (holder.switcher.getDisplayedChild() != 2)
+                    holder.switcher.showNext();
+                holder.spinner = (Spinner)
+                    holder.switcher.findViewById(R.id.item_spinner);
+                // create an adapter to describe how the items are displayed
+                holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item);
+                if (position == 7) {
+                    // audio
+                    holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, Settings.audio_tracks);
+                }
+                else if (position == 9) {
+                    // subtitle
+                    holder.adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_spinner_dropdown_item, Settings.subtitle_tracks);
+                }
+                holder.spinner.setAdapter(holder.adapter);
             }
             else {
                 holder.caption = (TextView)
@@ -139,11 +141,55 @@ public class SettingsAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder)convertView.getTag();
         }
+        myItems.get(position).holder = holder;
+
+        if (myItems.get(position).type == ListItem.TYPE.SPINNER) {
+            holder.adapter.notifyDataSetChanged();
+            holder.spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    if (selectedItemView == null || parentView == null) {
+                        return;
+                    }
+                    if (myItems.get(7).holder == null || myItems.get(9).holder == null) {
+                        return;
+                    }
+
+                    Integer value = 1;
+                    String selection = ((TextView) selectedItemView).getText().toString();
+                    Spinner spinner = (Spinner) parentView;
+                    try {
+                        value = Integer.parseInt(selection.split(":")[0]);
+                    }
+                    catch (Exception e) {}
+                    if (spinner.equals(myItems.get(7).holder.spinner)) {
+                        // Audio Track
+                        Settings.audio = value;
+                        // TODO: send track once connected
+                        sendCommand("set_audio", "track", Settings.audio);
+                        showProperty("audio", null, null);
+                    }
+                    else if (spinner.equals(myItems.get(9).holder.spinner)) {
+                        // Subtitle Track
+                        Settings.subtitle = value;
+                        // TODO: send track once connected
+                        sendCommand("set_subtitles", "track", Settings.subtitle);
+                        showProperty("sub", null, null);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                }
+
+            });
+            return convertView;
+        }
 
         // Fill TextView with the value you have in data source
         holder.caption.setText(myItems.get(position).caption);
         holder.caption.setHint(myItems.get(position).hint);
-        holder.caption.setFocusable(myItems.get(position).focusable);
+        holder.caption.setFocusable(myItems.get(position).type == ListItem.TYPE.EDIT_TEXT);
         holder.caption.setId(position);
         holder.caption.setInputType(myItems.get(position).inputType);
         if (holder.text != null)
@@ -184,6 +230,14 @@ public class SettingsAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public void refresh() {
+        // update spinners
+        myItems.get(7).holder.spinner.setSelection(0);
+        myItems.get(9).holder.spinner.setSelection(0);
+        myItems.get(7).holder.adapter.notifyDataSetChanged();
+        myItems.get(9).holder.adapter.notifyDataSetChanged();
+    }
+
     private void setInput(TextView view) {
         String hint = view.getHint().toString();
         String value = view.getText().toString();
@@ -199,18 +253,15 @@ public class SettingsAdapter extends BaseAdapter {
             // Password
             Settings.passwd = value;
         }
-        else if (hint.equals(myItems.get(7).hint)) {
-            // Audio Track
-            Settings.audio = Integer.parseInt(value);
-            // TODO: send track once connected
-            sendCommand("set_audio", "track", Settings.audio);
-        }
-        else if (hint.equals(myItems.get(9).hint)) {
-            // Subtitle Track
-            Settings.subtitle = Integer.parseInt(value);
-            // TODO: send track once connected
-            sendCommand("set_subtitles", "track", Settings.subtitle);
-        }
+    }
+
+    private void showProperty(String property, String pre, String post) {
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        map.put("command", "show");
+        map.put("property", property);
+        map.put("pre", pre);
+        map.put("post", post);
+        send(map);
     }
 
     private void sendCommand(String cmd, Object... pairs) {
@@ -235,21 +286,34 @@ public class SettingsAdapter extends BaseAdapter {
 }
 
 class ViewHolder {
-    ViewSwitcher switcher;
+    ViewFlipper switcher;
     TextView caption;
     EditText text;
+    Spinner spinner;
+    ArrayAdapter<String> adapter;
 }
 
 class ListItem {
-    String caption;
-    String hint;
-    boolean focusable;
-    int inputType;
+    TYPE type;              // type of item
+    ViewHolder holder;      // to get access
+    /* text options */
+    String caption;         // user input
+    String hint;            // preview when view is empty
+    int inputType;          // input type for text input
+    /* spinner options */
 
-    public ListItem(String c, String h, boolean f, int i) {
+    public enum TYPE {
+        NULL,
+        TEXT_VIEW,
+        EDIT_TEXT,
+        SPINNER;
+    }
+
+    public ListItem(TYPE t, String c, String h, int i) {
+        type = t;
         caption = c;
         hint = h;
-        focusable = f;
         inputType = i;
+        holder = null;
     }
 }
