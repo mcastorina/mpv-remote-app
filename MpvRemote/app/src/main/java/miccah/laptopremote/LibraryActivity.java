@@ -140,7 +140,8 @@ public class LibraryActivity extends Activity
                 cmd.put("command", "tracks");
                 new UDPPacket(Settings.ipAddress,
                         Settings.port,
-                        Settings.passwd, this).execute(cmd);
+                        Settings.passwd,
+                        this, true, 2000).execute(cmd);
             };
         }
     }

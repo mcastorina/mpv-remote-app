@@ -1,8 +1,11 @@
+from collections import OrderedDict
+from hashlib import md5
 import subprocess
 import threading
 import logging
 import socket
 import json
+import time
 
 class MediaController:
     def __init__(self):
@@ -85,9 +88,11 @@ class SocketMediaController(MediaController):
             return None
 
 class MpvController(SocketMediaController):
+    GET_TRACKS_CACHE_SIZE = 16
     def __init__(self, unix_socket='/tmp/mpvsocket'):
         super().__init__(unix_socket)
-        self.tracks = {'subtitle': [], 'audio': []}
+        self._get_tracks_cache = OrderedDict()
+        self.lock = threading.Lock()
 
     def play(self, path):
         ret = self.send_command('loadfile', [path])
@@ -130,14 +135,30 @@ class MpvController(SocketMediaController):
     def get_mute(self):
         return self.get_property('mute')
     def get_subtitle_tracks(self):
-        # TODO: always fetch tracks (when cache is enabled)
-        return self.tracks['subtitle']
+        self.lock.acquire()
+        ret = self._get_tracks('sub', ['id', 'lang'])
+        self.lock.release()
+        return ret
     def get_audio_tracks(self):
-        # TODO: always fetch tracks (when cache is enabled)
-        return self.tracks['audio']
+        self.lock.acquire()
+        ret = self._get_tracks('audio', ['id', 'lang'])
+        self.lock.release()
+        return ret
     def prefetch_tracks(self):
-        self.tracks['subtitle'] = self._get_tracks('sub', ['id', 'lang'])
-        self.tracks['audio'] = self._get_tracks('audio', ['id', 'lang'])
+        # retry due to file not loaded yet
+        # TODO: change to wait for event
+        self.lock.acquire()
+        logging.debug('===================== PREFETCH START')
+        for i in range(5):
+            logging.debug("============= PREFETCH ATTEMPT %d", i)
+            try:
+                self._get_tracks('sub', ['id', 'lang'])
+                self._get_tracks('audio', ['id', 'lang'])
+                break
+            except:
+                time.sleep(0.2)
+        logging.debug('===================== PREFETCH STOP')
+        self.lock.release()
 
     # Get the property
     def get_property(self, property):
@@ -190,6 +211,7 @@ class MpvController(SocketMediaController):
             return False
 
     def _socat(self, command, filter='error'):
+        logging.debug("Mpv request: \"%s\"", command)
         self.send(command + '\n')
         ret = self.recv(0.05)
         logging.debug("Mpv response: \"%s\"", ret)
@@ -199,7 +221,12 @@ class MpvController(SocketMediaController):
         return ret
 
     def _get_tracks(self, track_type, info, fmt=None):
-        # TODO: cache this based on currently playing media
+        path = self.get_property("path")
+        hash = md5(''.join(map(str, [path, track_type, info, fmt])).encode()).hexdigest()
+        if hash in self._get_tracks_cache:
+            logging.debug("Hash \"%s\" found in _get_tracks_cache", hash)
+            return self._get_tracks_cache.get(hash)
+
         tracks = []
         if not isinstance(info, list):
             info = [info]
@@ -207,11 +234,16 @@ class MpvController(SocketMediaController):
             start = '{}:' if len(info) > 1 else '{}'
             fmt = start + ' {}' * (len(info) - 1)
 
-        try:    n = int(self.get_property("track-list/count"))
-        except: return tracks
+        n = int(self.get_property("track-list/count"))
 
         for i in range(n):
             if self.get_property("track-list/%d/type" % i) == track_type:
                 data = [self.get_property("track-list/%d/%s" % (i, inf)) for inf in info]
                 tracks += [fmt.format(*data)]
+
+        logging.debug("Setting hash \"%s\" in _get_tracks_cache", hash)
+        self._get_tracks_cache[hash] = tracks
+        while len(self._get_tracks_cache) > MpvController.GET_TRACKS_CACHE_SIZE:
+            # remove in FIFO order
+            self._get_tracks_cache.popitem(last=False)
         return tracks
