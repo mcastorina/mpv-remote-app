@@ -142,14 +142,6 @@ class MediaServer:
                 else:
                     # play the file
                     ret = self.controller.play(abspath(realpath(path)))
-                    if ret:
-                        # save available audio and subtitle tracks
-                        # TODO: sometimes this fails due to opening too soon
-                        # temporary fix: retry in _get_tracks
-                        tracks = {}
-                        tracks["subtitle"] = self.controller.get_subtitle_tracks()
-                        tracks["audio"] = self.controller.get_audio_tracks()
-                        msg = tracks
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
             elif command == "stop":
@@ -180,6 +172,15 @@ class MediaServer:
             elif command == "show":
                 # display text on screen
                 ret = self._show(cmd)
+            elif command == "tracks":
+                # return audio and subtitle tracks
+                try:
+                    msg = {"subtitle": self.controller.get_subtitle_tracks(),
+                           "audio": self.controller.get_audio_tracks()}
+                    ret = True
+                except:
+                    msg = None
+                    ret = False
             else:
                 ret, msg = False, "Not Implemented"
 

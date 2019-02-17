@@ -56,8 +56,7 @@ public class LibraryActivity extends Activity
                     cmd.put("path", data.parent + "/" + item.name);
                     new UDPPacket(Settings.ipAddress,
                             Settings.port,
-                            Settings.passwd, LibraryActivity.this,
-                            true, 1500).execute(cmd);
+                            Settings.passwd, LibraryActivity.this).execute(cmd);
                     finish();
                 }
             }
@@ -117,10 +116,10 @@ public class LibraryActivity extends Activity
         boolean success = false;
         try {success = obj.getBoolean("result");} catch (Exception e) {}
         if (result && success) {
-            Toast.makeText(getApplicationContext(),
-                    "Playing", Toast.LENGTH_SHORT).show();
             try {
                 obj = new JSONObject(obj.getString("message"));
+                // this will cause an exception when message: null
+                // which is the case for "Playing"
                 JSONArray stracks = obj.getJSONArray("subtitle");
                 JSONArray atracks = obj.getJSONArray("audio");
 
@@ -134,7 +133,15 @@ public class LibraryActivity extends Activity
                     Settings.audio_tracks.add(atracks.getString(i));
                 ((SettingsAdapter) Settings.mDrawerList.getAdapter()).refresh();
             }
-            catch (JSONException e) {};
+            catch (JSONException e) {
+                Toast.makeText(getApplicationContext(),
+                        "Playing", Toast.LENGTH_SHORT).show();
+                HashMap<String, Object> cmd = new HashMap<String, Object>();
+                cmd.put("command", "tracks");
+                new UDPPacket(Settings.ipAddress,
+                        Settings.port,
+                        Settings.passwd, this).execute(cmd);
+            };
         }
     }
 }

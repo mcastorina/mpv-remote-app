@@ -1,4 +1,5 @@
 import subprocess
+import threading
 import logging
 import socket
 import json
@@ -86,9 +87,14 @@ class SocketMediaController(MediaController):
 class MpvController(SocketMediaController):
     def __init__(self, unix_socket='/tmp/mpvsocket'):
         super().__init__(unix_socket)
+        self.tracks = {'subtitle': [], 'audio': []}
 
     def play(self, path):
-        return self.send_command('loadfile', [path])
+        ret = self.send_command('loadfile', [path])
+        if ret:
+            # prefetch audio and subtitle tracks
+            threading.Thread(target=self.prefetch_tracks).start()
+        return ret
     def pause(self, state=True):
         return self.set_property('pause', state)
     def stop(self):
@@ -124,9 +130,14 @@ class MpvController(SocketMediaController):
     def get_mute(self):
         return self.get_property('mute')
     def get_subtitle_tracks(self):
-        return self._get_tracks('sub', ['id', 'lang'])
+        # TODO: always fetch tracks (when cache is enabled)
+        return self.tracks['subtitle']
     def get_audio_tracks(self):
-        return self._get_tracks('audio', ['id', 'lang'])
+        # TODO: always fetch tracks (when cache is enabled)
+        return self.tracks['audio']
+    def prefetch_tracks(self):
+        self.tracks['subtitle'] = self._get_tracks('sub', ['id', 'lang'])
+        self.tracks['audio'] = self._get_tracks('audio', ['id', 'lang'])
 
     # Get the property
     def get_property(self, property):
@@ -188,6 +199,7 @@ class MpvController(SocketMediaController):
         return ret
 
     def _get_tracks(self, track_type, info, fmt=None):
+        # TODO: cache this based on currently playing media
         tracks = []
         if not isinstance(info, list):
             info = [info]
@@ -195,15 +207,8 @@ class MpvController(SocketMediaController):
             start = '{}:' if len(info) > 1 else '{}'
             fmt = start + ' {}' * (len(info) - 1)
 
-        # TODO: remove this retry logic
-        n = 0
-        for i in range(3):
-            try:
-                n = int(self.get_property("track-list/count"))
-                break
-            except: pass
-            import time
-            time.sleep(0.5)
+        try:    n = int(self.get_property("track-list/count"))
+        except: return tracks
 
         for i in range(n):
             if self.get_property("track-list/%d/type" % i) == track_type:
