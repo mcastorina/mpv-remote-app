@@ -30,6 +30,8 @@ Because the server receives commands over the network, this means it is
 possible, although a very bad idea, to open this up to the Internet. I
 do not recommend it.
 
+For a more detailed description, refer to [DESIGN.md](DESIGN.md).
+
 ## Getting Started
 
 ### Installation
