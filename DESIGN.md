@@ -33,54 +33,152 @@ The messages exchanged between server and client are a few generic white-listed 
 | repeat        | args (string array)   | delay (float), speedup (boolean)  |
 | list          | directory (string)    |                                   |
 | show          | property (string)     | pre (string), post (string)       |
+| tracks        |                       |                                   |
 
 ### Examples
-```
-health
+<pre><table>
+    <tr>
+        <th>Input</th>
+        <th>Output</th>
+    </tr>
 
-{
+    <tr>
+        <td>health</td>
+        <td>{
+    "action": null,
+    "message": null,
+    "result": true,
+    "time": 123
+}</td>
+    </tr>
+
+    <tr>
+        <td>{
     "command": "play",
-    "path": "path/to/file.mkv"
-}
+    "path": "path/to/file.mkv",
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "pause",
-    "state": true
-}
+    "state": true,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{ "command": "stop" }
+    <tr>
+        <td>{
+    "command": "stop",
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "seek",
-    "seconds": 5
-}
+    "seconds": 5,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    <tr>
 
-{
+    <tr>
+        <td>{
     "command": "set_volume",
-    "volume": 5
-}
+    "volume": 95,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "set_subtitles",
-    "track": 1
-}
+    "track": 1,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "set_audio",
-    "track": 1
-}
+    "track": 1,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "fullscreen",
-    "state": true
-}
+    "state": true,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "mute",
-    "state": false
-}
+    "state": false,
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "repeat",
     "delay": 0.1,
     "speedup": true,
@@ -89,17 +187,71 @@ health
         "seconds",
         "5"
     ]
-}
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "list",
-    "directory": "."
-}
+    "directory": ".",
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": {
+        "directories": [
+            "videos"
+        ],
+        "files": [
+            "outkast-roses.mp3"
+        ]
+    }
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
 
-{
+    <tr>
+        <td>{
     "command": "show",
     "property": "volume",
     "pre": "Volume: ",
-    "post": "%"
-}
-```
+    "post": "%",
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": null,
+    "result": "",
+    "time": 124
+}</td>
+    </tr>
+
+    <tr>
+        <td>{
+    "command": "tracks",
+    "time": 123
+}</td>
+        <td>{
+    "action": 123,
+    "message": {
+        "audio": [
+            "1: eng",
+            "2: jpn"
+        ],
+        "subtitle": [
+            "1: jpn"
+        ]
+    },
+    "result": true,
+    "time": 124
+}</td>
+    </tr>
+</table></pre>

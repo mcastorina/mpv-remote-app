@@ -13,7 +13,8 @@ running on a separate computer.
 * fast forward / rewind
 * volume slider
 * fullscreen
-* subtitles
+* subtitles toggle
+* audio / subtitle selection
 * file browsing
 * automatically find server
 
