@@ -105,7 +105,10 @@ class MpvController(SocketMediaController):
     def stop(self):
         return self.send_command('stop')
     def seek(self, seconds):
-        return self.send_command('seek %d' % seconds, raw=True)
+        try:
+            ret = self._socat('seek %d' % seconds, filter='seek')
+            return json.loads(ret)['event'] == 'seek'
+        except: return False
     def set_volume(self, volume):
         return self.set_property('volume', volume)
     def set_subtitles(self, track):
