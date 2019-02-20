@@ -236,6 +236,7 @@ class MediaServer:
             cmd[pairs[i]] = pairs[i+1]
 
         # mute audio
+        prev_mute = self.controller.get_mute()
         self.controller.mute()
 
         counter = 0
@@ -251,4 +252,4 @@ class MediaServer:
                     counter = 0
 
         # unmute audio
-        self.controller.unmute()
+        self.controller.mute(prev_mute)
