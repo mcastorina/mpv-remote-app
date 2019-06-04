@@ -1,13 +1,14 @@
 #!/usr/bin/python3
-
 import os
 import psutil
 import logging
 import argparse
 import subprocess
-from media_server import MediaServer
-from media_controllers import MpvController
+from .media_server import MediaServer
+from .media_controllers import MpvController
 from os.path import abspath, realpath, isdir
+
+name = "mpv_remote_app"
 
 # Usage message
 help_string = (

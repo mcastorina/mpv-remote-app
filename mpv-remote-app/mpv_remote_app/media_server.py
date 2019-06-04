@@ -6,7 +6,7 @@ import signal
 import socket
 import logging
 import threading
-from media_controllers import *
+from .media_controllers import *
 from collections import OrderedDict
 from os.path import abspath, realpath, join, isdir, isfile
 
