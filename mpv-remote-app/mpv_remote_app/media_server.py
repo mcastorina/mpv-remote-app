@@ -19,21 +19,29 @@ class MediaServer:
         self.filetypes = filetypes      # array of acceptable filetypes
         self.controller = controller    # MediaController
 
-        # create socket
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0', self.port))
         # setup history and state
         self.state = 'NORMAL'       # state can be NORMAL or REPEAT
         self.history_size = 4       # max number of commands to remember
         self.history = OrderedDict()
         # setup pid for daemon
         self.pid = 0
+        # setup socket
+        self.sock = None
 
         # attributes that change per connection
         self.client = None
         self.action_id = None
+    # create socket for server to listen
+    def open(self):
+        logging.debug("opening server")
+        # create socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('0.0.0.0', self.port))
+        return self
     # runs the server
     def run(self, daemon=False):
+        if self.sock is None:
+            self.open()
         self.pid = 0
         if daemon:
             self.pid = os.fork()
@@ -48,10 +56,15 @@ class MediaServer:
         return True
     # stops the server
     def stop(self):
-        logging.debug("shutting server down")
+        logging.debug("stopping server")
         if self.pid != 0:
             os.kill(self.pid, signal.SIGTERM)
             self.pid = 0
+    # closes the server
+    def close(self):
+        self.stop()
+        logging.debug("closing server")
+        self.sock.close()
     # returns whether the server is running or not
     def is_running(self):
         return self.pid != 0

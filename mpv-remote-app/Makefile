@@ -5,6 +5,8 @@ all: build
 
 build: setup.py $(PROJECT)
 	$(PYTHON) setup.py sdist bdist_wheel
+test: $(PROJECT)
+	$(PYTHON) -m unittest discover tests
 
 install: build
 	sudo $(PYTHON) setup.py install --record .install-files
