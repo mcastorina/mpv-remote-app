@@ -6,6 +6,7 @@ import signal
 import socket
 import logging
 import threading
+from hashlib import md5
 from .media_controllers import *
 from collections import OrderedDict
 from os.path import abspath, realpath, join, isdir, isfile
@@ -111,7 +112,7 @@ class MediaServer:
                               "result": success, "message": response})
             logging.debug("Sending ACK: \"%s\"", msg)
 
-            h = hmac.new((self.password + str(t)).encode(), msg.encode()).hexdigest()
+            h = hmac.new((self.password + str(t)).encode(), msg.encode(), md5).hexdigest()
             response = json.dumps({"hmac": h, "message": msg}).encode()
             if self.action_id is not None:
                 # save in history
