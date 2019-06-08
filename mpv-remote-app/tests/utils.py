@@ -4,6 +4,7 @@ import hmac
 import json
 import time
 import socket
+from hashlib import md5
 
 class Messenger:
     def __init__(self, addr, port, password):
@@ -21,7 +22,7 @@ class Messenger:
         # Convert to string
         msg = json.dumps(data)
         # HMAC
-        h = hmac.new((SERVER_PASSWORD + str(t)).encode(), msg.encode()).hexdigest()
+        h = hmac.new((self.password + str(t)).encode(), msg.encode(), md5).hexdigest()
         raw_resp = self.send_raw(json.dumps({"hmac": h, "message": msg}))
         return self.json_decode(raw_resp)
 
