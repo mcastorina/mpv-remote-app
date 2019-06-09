@@ -1,5 +1,5 @@
 # mpv-remote-app
-An Android application to control the [mpv media player](https://mpv.io/)
+Server for an Android application to control the [mpv media player](https://mpv.io/)
 running on a separate computer.
 
 Source: [mcastorina/mpv-remote-app](https://github.com/mcastorina/mpv-remote-app)
