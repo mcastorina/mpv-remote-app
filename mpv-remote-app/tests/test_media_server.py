@@ -32,13 +32,13 @@ class TestMediaServer(unittest.TestCase):
     def test_health(self):
         resp = self.hermes.send_raw("health")
         self.assertIsNotNone(resp)
-        message = self.hermes.json_decode(self.hermes.json_decode(resp)['message'])
+        message = Messenger.json_decode(Messenger.json_decode(resp)['message'])
         self.assertTrue(message['result'])
     def test_hmac(self):
         resp = self.hermes.send_raw("health")
         self.assertIsNotNone(resp)
-        data = self.hermes.json_decode(resp)
-        message = self.hermes.json_decode(data['message'])
+        data = Messenger.json_decode(resp)
+        message = Messenger.json_decode(data['message'])
 
         sent_hmac = data['hmac']
         sent_time = message['time']
@@ -46,7 +46,7 @@ class TestMediaServer(unittest.TestCase):
         expected_hmac = hmac.new(key, data['message'].encode(), md5).hexdigest()
         self.assertEqual(sent_hmac, expected_hmac)
     def test_serve(self):
-        ret = self.hermes.json_decode(self.hermes.send_message({'command': ''})['message'])
+        ret = self.hermes.send_command('')
         self.assertFalse(ret['result'])
         self.assertEqual(ret['message'], 'Not Implemented')
 
@@ -79,6 +79,23 @@ class TestMediaServer(unittest.TestCase):
     def test_audio(self):
         self.server._serve({'command': 'set_audio', 'track': 0}, ack=False)
         self.server.controller.set_audio.assert_called_with(0)
+
+    def test_list(self):
+        ret, msg = self.server._serve({'command': 'list', 'directory': '.'}, ack=False)
+        self.assertTrue(ret)
+        self.assertEqual(sorted(msg['directories']), ['dir1'])
+        self.assertEqual(sorted(msg['files']), ['file1.mp4', 'file2.mkv', 'file3.txt'])
+    def test_list_oob(self):
+        ret, msg = self.server._serve({'command': 'list', 'directory': '..'}, ack=False)
+        self.assertFalse(ret)
+        self.assertEqual(msg, 'Directory out of bounds')
+    def test_list_filter(self):
+        self.server.filetypes = ['mp4', 'mkv']
+        ret, msg = self.server._serve({'command': 'list', 'directory': '.'}, ack=False)
+        self.assertTrue(ret)
+        self.assertEqual(sorted(msg['directories']), ['dir1'])
+        self.assertEqual(sorted(msg['files']), ['file1.mp4', 'file2.mkv'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,6 +14,11 @@ class Messenger:
         # UDP socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+    def send_command(self, command, args={}):
+        args['command'] = command
+        ret = self.send_message(args)
+        return Messenger.json_decode(ret['message'])
+
     # Send dictionary data with timestamp t
     def send_message(self, data):
         # Add timestamp
@@ -24,7 +29,7 @@ class Messenger:
         # HMAC
         h = hmac.new((self.password + str(t)).encode(), msg.encode(), md5).hexdigest()
         raw_resp = self.send_raw(json.dumps({"hmac": h, "message": msg}))
-        return self.json_decode(raw_resp)
+        return Messenger.json_decode(raw_resp)
 
     def send_raw(self, raw, response=True):
         self.sock.sendto(raw.encode(), self.addr)
@@ -32,5 +37,6 @@ class Messenger:
             return self.sock.recv(4096).decode()
         return None
 
-    def json_decode(self, data):
+    @staticmethod
+    def json_decode(data):
         return json.loads(data)
