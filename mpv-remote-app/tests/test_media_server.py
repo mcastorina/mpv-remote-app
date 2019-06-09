@@ -59,6 +59,9 @@ class TestMediaServer(unittest.TestCase):
     def test_play_non_file(self):
         self.server._serve({'command': 'play', 'path': './dir1'}, ack=False)
         self.server.controller.play.assert_not_called()
+    def test_play_unicode(self):
+        self.server._serve({'command': 'play', 'path': './τεστ/αβξ.mkv'}, ack=False)
+        self.server.controller.play.assert_called()
     def test_pause(self):
         self.server._serve({'command': 'pause', 'state': True}, ack=False)
         self.server.controller.pause.assert_called_with(True)
@@ -83,7 +86,7 @@ class TestMediaServer(unittest.TestCase):
     def test_list(self):
         ret, msg = self.server._serve({'command': 'list', 'directory': '.'}, ack=False)
         self.assertTrue(ret)
-        self.assertEqual(sorted(msg['directories']), ['dir1'])
+        self.assertEqual(sorted(msg['directories']), ['dir1', 'τεστ'])
         self.assertEqual(sorted(msg['files']), ['file1.mp4', 'file2.mkv', 'file3.txt'])
     def test_list_oob(self):
         ret, msg = self.server._serve({'command': 'list', 'directory': '..'}, ack=False)
@@ -93,8 +96,13 @@ class TestMediaServer(unittest.TestCase):
         self.server.filetypes = ['mp4', 'mkv']
         ret, msg = self.server._serve({'command': 'list', 'directory': '.'}, ack=False)
         self.assertTrue(ret)
-        self.assertEqual(sorted(msg['directories']), ['dir1'])
+        self.assertEqual(sorted(msg['directories']), ['dir1', 'τεστ'])
         self.assertEqual(sorted(msg['files']), ['file1.mp4', 'file2.mkv'])
+    def test_list_unicode(self):
+        ret, msg = self.server._serve({'command': 'list', 'directory': 'τεστ'}, ack=False)
+        self.assertTrue(ret)
+        self.assertEqual(msg['directories'], [])
+        self.assertEqual(msg['files'], ['αβξ.mkv'])
 
 
 if __name__ == '__main__':
