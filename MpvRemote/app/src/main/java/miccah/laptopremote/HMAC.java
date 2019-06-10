@@ -29,7 +29,7 @@ public class HMAC {
             Mac mac = Mac.getInstance(algorithm);
             mac.init(key);
 
-            byte[] bytes = mac.doFinal(message.getBytes("ASCII"));
+            byte[] bytes = mac.doFinal(message.getBytes("UTF-8"));
 
             StringBuffer hash = new StringBuffer();
             for (int i = 0; i < bytes.length; i++) {
