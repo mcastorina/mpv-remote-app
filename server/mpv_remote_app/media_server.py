@@ -135,7 +135,7 @@ class MediaServer:
         try:
             m = json.loads(data["message"])
             h = hmac.new((self.password + str(m["time"])).encode(),
-                     data["message"].encode()).hexdigest()
+                     data["message"].encode(), md5).hexdigest()
             return data["hmac"].lower() == h.lower()
         except: return False
     # take action to (already authenticated) command
@@ -198,13 +198,14 @@ class MediaServer:
             else:
                 ret, msg = False, "Not Implemented"
 
-            # send back ack if required
-            if ack: self._ack(ret, msg)
         except KeyError as e:
-            self._ack(False, "Exception '%s'" % str(e))
+            ret, msg = False, "Exception '%s'" % str(e)
         except Exception as e:
             logging.debug("%s", e)
-            self._ack(False, "Not Implemented")
+            ret, msg = False, "Not Implemented"
+        # send back ack if required
+        if ack: self._ack(ret, msg)
+        return ret, msg
     def _list(self, opath):
         # list files in self.root/path
         path = abspath(realpath(join(self.root, opath)))
