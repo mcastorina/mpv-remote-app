@@ -6,7 +6,8 @@ import signal
 import socket
 import logging
 import threading
-from media_controllers import *
+from hashlib import md5
+from .media_controllers import *
 from collections import OrderedDict
 from os.path import abspath, realpath, join, isdir, isfile
 
@@ -19,21 +20,29 @@ class MediaServer:
         self.filetypes = filetypes      # array of acceptable filetypes
         self.controller = controller    # MediaController
 
-        # create socket
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0', self.port))
         # setup history and state
         self.state = 'NORMAL'       # state can be NORMAL or REPEAT
         self.history_size = 4       # max number of commands to remember
         self.history = OrderedDict()
         # setup pid for daemon
         self.pid = 0
+        # setup socket
+        self.sock = None
 
         # attributes that change per connection
         self.client = None
         self.action_id = None
+    # create socket for server to listen
+    def open(self):
+        logging.debug("opening server")
+        # create socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('0.0.0.0', self.port))
+        return self
     # runs the server
     def run(self, daemon=False):
+        if self.sock is None:
+            self.open()
         self.pid = 0
         if daemon:
             self.pid = os.fork()
@@ -48,10 +57,15 @@ class MediaServer:
         return True
     # stops the server
     def stop(self):
-        logging.debug("shutting server down")
+        logging.debug("stopping server")
         if self.pid != 0:
             os.kill(self.pid, signal.SIGTERM)
             self.pid = 0
+    # closes the server
+    def close(self):
+        self.stop()
+        logging.debug("closing server")
+        self.sock.close()
     # returns whether the server is running or not
     def is_running(self):
         return self.pid != 0
@@ -98,7 +112,7 @@ class MediaServer:
                               "result": success, "message": response})
             logging.debug("Sending ACK: \"%s\"", msg)
 
-            h = hmac.new((self.password + str(t)).encode(), msg.encode()).hexdigest()
+            h = hmac.new((self.password + str(t)).encode(), msg.encode(), md5).hexdigest()
             response = json.dumps({"hmac": h, "message": msg}).encode()
             if self.action_id is not None:
                 # save in history
@@ -121,7 +135,7 @@ class MediaServer:
         try:
             m = json.loads(data["message"])
             h = hmac.new((self.password + str(m["time"])).encode(),
-                     data["message"].encode()).hexdigest()
+                     data["message"].encode(), md5).hexdigest()
             return data["hmac"].lower() == h.lower()
         except: return False
     # take action to (already authenticated) command
@@ -184,13 +198,14 @@ class MediaServer:
             else:
                 ret, msg = False, "Not Implemented"
 
-            # send back ack if required
-            if ack: self._ack(ret, msg)
         except KeyError as e:
-            self._ack(False, "Exception '%s'" % str(e))
+            ret, msg = False, "Exception '%s'" % str(e)
         except Exception as e:
             logging.debug("%s", e)
-            self._ack(False, "Not Implemented")
+            ret, msg = False, "Not Implemented"
+        # send back ack if required
+        if ack: self._ack(ret, msg)
+        return ret, msg
     def _list(self, opath):
         # list files in self.root/path
         path = abspath(realpath(join(self.root, opath)))
