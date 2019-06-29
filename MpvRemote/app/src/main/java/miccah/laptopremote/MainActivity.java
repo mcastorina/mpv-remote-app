@@ -32,6 +32,7 @@ public class MainActivity extends Activity {
     private ActionBarDrawerToggle mDrawerToggle;
     private Integer mVolume;
     private Toast mToast;
+    private SeekBar mSeekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +69,8 @@ public class MainActivity extends Activity {
         mVolume = 100;
 
         /* Setup volume bar */
-        SeekBar volumeControl = (SeekBar)findViewById(R.id.volume_bar);
-        volumeControl.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+        mSeekBar = (SeekBar)findViewById(R.id.volume_bar);
+        mSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar seekBar, int progress,
                 boolean fromUser) {
             }
@@ -165,6 +166,7 @@ public class MainActivity extends Activity {
                 if (action == KeyEvent.ACTION_DOWN) {
                     if (mVolume < Settings.MAX_VOLUME) {
                         mVolume = Math.min(mVolume + Settings.volumeStep, Settings.MAX_VOLUME);
+                        mSeekBar.setProgress(mVolume);
                         sendCommand(null, "set_volume", "volume", mVolume);
                     }
                     displayVolume();
@@ -174,6 +176,7 @@ public class MainActivity extends Activity {
                 if (action == KeyEvent.ACTION_DOWN) {
                     if (mVolume > Settings.MIN_VOLUME) {
                         mVolume = Math.max(mVolume - Settings.volumeStep, Settings.MIN_VOLUME);
+                        mSeekBar.setProgress(mVolume);
                         sendCommand(null, "set_volume", "volume", mVolume);
                     }
                     displayVolume();
