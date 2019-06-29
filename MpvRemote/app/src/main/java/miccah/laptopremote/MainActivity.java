@@ -7,6 +7,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ListView;
 import android.widget.LinearLayout;
@@ -29,6 +30,8 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
+    private Integer mVolume;
+    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,12 @@ public class MainActivity extends Activity {
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
+        /* Setup Toast */
+        mToast = Toast.makeText(MainActivity.this, "", Toast.LENGTH_SHORT);
+
+        /* Setup volume */
+        mVolume = 100;
+
         /* Setup volume bar */
         SeekBar volumeControl = (SeekBar)findViewById(R.id.volume_bar);
         volumeControl.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -69,8 +78,9 @@ public class MainActivity extends Activity {
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                sendCommand(null, "set_volume", "volume", seekBar.getProgress());
-                showProperty("volume", null, "%");
+                mVolume = seekBar.getProgress();
+                sendCommand(null, "set_volume", "volume", mVolume);
+                displayVolume();
             }
         });
 
@@ -146,6 +156,40 @@ public class MainActivity extends Activity {
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        int action = event.getAction();
+        int keyCode = event.getKeyCode();
+            switch (keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                if (action == KeyEvent.ACTION_DOWN) {
+                    if (mVolume < Settings.MAX_VOLUME) {
+                        mVolume = Math.min(mVolume + Settings.volumeStep, Settings.MAX_VOLUME);
+                        sendCommand(null, "set_volume", "volume", mVolume);
+                    }
+                    displayVolume();
+                }
+                return true;
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (action == KeyEvent.ACTION_DOWN) {
+                    if (mVolume > Settings.MIN_VOLUME) {
+                        mVolume = Math.max(mVolume - Settings.volumeStep, Settings.MIN_VOLUME);
+                        sendCommand(null, "set_volume", "volume", mVolume);
+                    }
+                    displayVolume();
+                }
+                return true;
+            default:
+                return super.dispatchKeyEvent(event);
+            }
+        }
+
+    public void displayVolume() {
+        try {mToast.cancel();} catch (Exception e){}
+        mToast = Toast.makeText(MainActivity.this, "Volume: " + mVolume + "%", Toast.LENGTH_SHORT);
+        mToast.show();
+        showProperty("volume", null, "%");
+    }
     public void libraryButton(View view) {
         Intent intent = new Intent(this, LibraryActivity.class);
         startActivity(intent);
