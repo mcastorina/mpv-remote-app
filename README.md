@@ -37,20 +37,15 @@ For a more detailed description, refer to [DESIGN.md](DESIGN.md).
 
 ### Installation
 
-1. Clone this repository.
+1. Install the server (Python 3 only)
 
 ```
-git clone https://github.com/mcastorina/mpv-remote-app
+pip3 install mpv-remote-app
 ```
 
-2. Install the python 3 requirements
+2. Install the Android application
 
-```
-pip install psutil
-```
-
-3. Install the Android application
-
+- Download [snapshot.apk](snapshot.apk)
 - Plug in your Android phone
 - Enable developer mode
 
@@ -69,7 +64,7 @@ mpv --input-ipc-server /tmp/mpvsocket --idle
 ```
 
 ```
-python server/server.py p4ssw0rd
+mpv-remote-app p4ssw0rd
 ```
 
 ### Connect
