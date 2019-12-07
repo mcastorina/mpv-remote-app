@@ -3,10 +3,11 @@ import os
 import psutil
 import logging
 import argparse
+import tempfile
 import subprocess
 from .media_server import MediaServer
 from .media_controllers import MpvController
-from os.path import abspath, realpath, isdir
+from os.path import abspath, realpath, isdir, join
 
 name = "mpv_remote_app"
 
@@ -29,8 +30,8 @@ def parse_args():
                         default=None,
                         help="Unix socket that mpv is listening on (default: auto detect)")
     parser.add_argument("-r", "--root", metavar="ROOT_DIR", type=str,
-                        default=os.environ.get('HOME', None),
-                        help="Root directory for file browsing (default: $HOME)")
+                        default=os.environ.get('HOME', os.getcwd()),
+                        help="Root directory for file browsing (default: $HOME or CWD)")
     parser.add_argument("--hidden", action='store_true',
                         help="Send hidden filenames (default: false)")
     parser.add_argument("-f", "--filetypes", metavar="FILETYPES", type=str,
@@ -87,7 +88,7 @@ def main():
     # or spawn if not running
     if not set_mpv_socket(args):
         if args.mpv_socket is None:
-            args.mpv_socket = "/tmp/mpvsocket"
+            args.mpv_socket = join(tempfile.gettempdir(), "mpvsocket")
         logging.info("No running mpv instance found. Starting mpv...")
         subprocess.Popen(["mpv", "--no-terminal", "--input-ipc-server",
             args.mpv_socket, "--idle"])
