@@ -63,8 +63,12 @@ def set_mpv_socket(args):
         try:
             p = psutil.Process(pid)
             cmdline = p.cmdline()
-            if p.name() == "mpv" and "--input-ipc-server" in cmdline:
-                ipc_server = cmdline[cmdline.index("--input-ipc-server") + 1]
+            if p.name() == "mpv" and any(["--input-ipc-server" in s for s in cmdline]):
+                if "--input-ipc-server" in cmdline:
+                    ipc_server = cmdline[cmdline.index("--input-ipc-server") + 1]
+                else:
+                    ipc_server = [s for s in cmdline if "--input-ipc-server" in s][-1]
+                    ipc_server = ipc_server.split("=")[1]
                 if args.mpv_socket is None:
                     args.mpv_socket = ipc_server
                     return True
@@ -93,6 +97,7 @@ def main():
         subprocess.Popen(["mpv", "--no-terminal", "--input-ipc-server",
             args.mpv_socket, "--idle"])
 
+    logging.debug(f"using mpv socket {args.mpv_socket}")
     ms = MediaServer(args.port, args.password, root=args.root,
             no_hidden=not args.hidden, filetypes=args.filetypes,
             controller=MpvController(args.mpv_socket))
