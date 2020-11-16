@@ -94,8 +94,8 @@ def main():
         if args.mpv_socket is None:
             args.mpv_socket = join(tempfile.gettempdir(), "mpvsocket")
         logging.info("No running mpv instance found. Starting mpv...")
-        subprocess.Popen(["mpv", "--no-terminal", "--input-ipc-server",
-            args.mpv_socket, "--idle"])
+        subprocess.Popen(["mpv", "--no-terminal",
+            "--input-ipc-server="+args.mpv_socket, "--idle"])
 
     logging.debug(f"using mpv socket {args.mpv_socket}")
     ms = MediaServer(args.port, args.password, root=args.root,
