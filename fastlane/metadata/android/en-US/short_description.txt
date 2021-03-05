@@ -1,0 +1,1 @@
+Android application to control mpv running on another computer.

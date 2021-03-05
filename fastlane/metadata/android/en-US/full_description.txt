@@ -1,0 +1,14 @@
+An Android application to control the mpv media player running on a separate computer.
+
+Features
+
+<ul>
+    <li>play / pause</li>
+    <li>fast forward / rewind</li>
+    <li>volume slider</li>
+    <li>fullscreen</li>
+    <li>subtitles toggle</li>
+    <li>audio / subtitle selection</li>
+    <li>file browsing</li>
+    <li>automatically find server</li>
+</ul>
