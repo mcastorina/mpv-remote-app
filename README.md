@@ -40,10 +40,16 @@ For a more detailed description, refer to [DESIGN.md](DESIGN.md).
 1. Install the server (Python 3 only)
 
 ```
-pip3 install mpv-remote-app
+python3 -m pip install mpv-remote-app
 ```
 
 2. Install the Android application
+
+The Android application is [available on F-Droid
+here](https://f-droid.org/en/packages/miccah.mpvremote/).
+
+Alternatively, you can follow these steps to install the APK manually
+(requires android tools):
 
 - Download [snapshot.apk](snapshot.apk)
 - Plug in your Android phone
@@ -60,7 +66,7 @@ server. Currently, the server only works with Python 3.
 
 You can manually start mpv below or let the server spawn it for you.
 ```
-mpv --input-ipc-server /tmp/mpvsocket --idle
+mpv --input-ipc-server=/tmp/mpvsocket --idle
 ```
 
 ```
