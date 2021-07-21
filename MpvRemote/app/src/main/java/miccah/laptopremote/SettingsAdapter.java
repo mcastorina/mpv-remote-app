@@ -59,7 +59,7 @@ public class SettingsAdapter extends BaseAdapter {
             new UDPPacket(ipAddr, Settings.port, Settings.passwd, new Callback() {
                 public void callback(boolean result, JSONObject obj) {
                     String addr = Settings.ipAddress;
-                    boolean notFound = addr.charAt(addr.length() - 1) == '.';
+                    boolean notFound = (addr.length() > 0) ? addr.charAt(addr.length() - 1) == '.' : false;
                     if (result && notFound) {
                         Settings.ipAddress = ipAddr;
                         myItems.get(1).caption = Settings.ipAddress;
