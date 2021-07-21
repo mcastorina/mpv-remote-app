@@ -26,6 +26,9 @@ def parse_args():
     parser.add_argument("-p", "--port", metavar="PORT_NUMBER", type=int,
                         default=28899,
                         help="Port number on which to listen (default: 28899)")
+    parser.add_argument("-a", "--address", metavar="ADDRESS", type=str,
+                        default="0.0.0.0",
+                        help="Address to bind to")
     parser.add_argument("-s", "--mpv-socket", metavar="SOCK", type=str,
                         default=None,
                         help="Unix socket that mpv is listening on (default: auto detect)")
@@ -98,7 +101,7 @@ def main():
             "--input-ipc-server="+args.mpv_socket, "--idle"])
 
     logging.debug(f"using mpv socket {args.mpv_socket}")
-    ms = MediaServer(args.port, args.password, root=args.root,
+    ms = MediaServer(args.port, args.address, args.password, root=args.root,
             no_hidden=not args.hidden, filetypes=args.filetypes,
             controller=MpvController(args.mpv_socket))
     ms.run(daemon=args.daemon)

@@ -12,8 +12,9 @@ from collections import OrderedDict
 from os.path import abspath, realpath, join, isdir, isfile
 
 class MediaServer:
-    def __init__(self, port, password, root=os.getcwd(), no_hidden=True, filetypes=None, controller=None):
+    def __init__(self, port, address, password, root=os.getcwd(), no_hidden=True, filetypes=None, controller=None):
         self.port = port                # port to listen on
+        self.address = address          # address to bind to
         self.password = password        # server secret
         self.root = abspath(realpath(root)) # top level directory of server
         self.no_hidden = no_hidden      # send / play hidden files
@@ -37,7 +38,7 @@ class MediaServer:
         logging.debug("opening server")
         # create socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0', self.port))
+        self.sock.bind((self.address, self.port))
         return self
     # runs the server
     def run(self, daemon=False):
