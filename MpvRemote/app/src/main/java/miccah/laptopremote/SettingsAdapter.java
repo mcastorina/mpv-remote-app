@@ -247,7 +247,7 @@ public class SettingsAdapter extends BaseAdapter {
         }
         else if (hint.equals(myItems.get(2).hint)) {
             // Port
-            Settings.port = Integer.parseInt(value);
+            Settings.port = value.matches("\\d+") ?  Integer.parseInt(value) : 0;
         }
         else if (hint.equals(myItems.get(4).hint)) {
             // Password
