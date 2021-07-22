@@ -88,7 +88,7 @@
             android:layout_centerHorizontal="true" />
 
         <miccah.mpvremote.BackgroundImageButton
-            android:src="@drawable/vector_arrange_below_off"
+            android:src="@drawable/fullscreen"
             android:id="@+id/full_screen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
