@@ -81,6 +81,7 @@ public class SettingsAdapter extends BaseAdapter {
         Settings.audio_tracks = new ArrayList<String>();    Settings.audio_tracks.add("1");
         Settings.subtitle_tracks = new ArrayList<String>(); Settings.subtitle_tracks.add("1");
 
+
         /* Initialize list (Text, Hint, Focusable, InputType) */
         myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Settings",     InputType.TYPE_NULL) );
         myItems.add( new ListItem(ListItem.TYPE.EDIT_TEXT,  Settings.ipAddress,         "IP Address",   InputType.TYPE_CLASS_TEXT) );
