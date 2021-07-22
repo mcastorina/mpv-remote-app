@@ -40,9 +40,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BackgroundToggleButton subtitles2 = (miccah.mpvremote.BackgroundToggleButton)
-                findViewById(R.id.subtitles2);
-        subtitles2.setChecked(PreferenceManager.getDefaultSharedPreferences(this)
+        BackgroundToggleButton subtitles = (miccah.mpvremote.BackgroundToggleButton)
+                findViewById(R.id.subtitles);
+        subtitles.setChecked(PreferenceManager.getDefaultSharedPreferences(this)
                 .getBoolean("SUBTITLES", true));
 
         /* Setup side menu */
