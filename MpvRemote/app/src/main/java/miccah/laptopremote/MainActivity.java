@@ -129,8 +129,8 @@ public class MainActivity extends Activity {
             setDrawables(android.R.drawable.ic_media_pause,
                          android.R.drawable.ic_media_play);
         ((BackgroundImageButton)findViewById(R.id.full_screen)).
-            setDrawables(R.drawable.vector_arrange_below_off,
-                         R.drawable.vector_arrange_below_on);
+            setDrawables(R.drawable.fullscreen,
+                         R.drawable.fullscreen_exit);
     }
 
     @Override
