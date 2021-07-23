@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -43,6 +44,11 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        BackgroundToggleButton subtitles = (miccah.mpvremote.BackgroundToggleButton)
+                findViewById(R.id.subtitles);
+        subtitles.setChecked(PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("SUBTITLES", true));
 
         /* Setup side menu */
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -225,6 +231,8 @@ public class MainActivity extends Activity {
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
+        PreferenceManager.getDefaultSharedPreferences(this).edit()
+            .putBoolean("SUBTITLES", button.isChecked()).apply();
         button.sendCommand("set_subtitles", "track", button.isChecked() ? Settings.subtitle : 0);
     }
     public void fullScreenButton(View view) {

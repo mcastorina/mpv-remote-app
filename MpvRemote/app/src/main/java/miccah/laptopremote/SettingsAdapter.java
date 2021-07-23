@@ -2,6 +2,7 @@ package miccah.mpvremote;
 
 import java.util.ArrayList;
 import android.app.Activity;
+import android.preference.PreferenceManager;
 import android.view.ViewGroup;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -35,41 +36,50 @@ public class SettingsAdapter extends BaseAdapter {
         mInflater = (LayoutInflater)
             activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        String ipAddress = null;
-        try {
-            WifiManager wifiManager = (WifiManager)
-                activity.getSystemService(Activity.WIFI_SERVICE);
-            ipAddress = Formatter.formatIpAddress(
-                    wifiManager.getConnectionInfo().getIpAddress());
-        } catch (Exception e) {ipAddress = "Error";}
-
         /* Default Settings */
-        // ipAddress first 3 octets of IPv4 address
-        Settings.ipAddress = ipAddress.substring(0, ipAddress.lastIndexOf('.')+1);
-        Settings.port = new Integer(28899);
-        Settings.passwd = "";
+        String prefIP = PreferenceManager.getDefaultSharedPreferences(activity)
+                .getString("IP", "");
+        if (prefIP != "") {
+            Settings.ipAddress = prefIP;
+        } else {
+            String ipAddress = null;
+            try {
+                WifiManager wifiManager = (WifiManager)
+                        activity.getSystemService(Activity.WIFI_SERVICE);
+                ipAddress = Formatter.formatIpAddress(
+                        wifiManager.getConnectionInfo().getIpAddress());
+            } catch (Exception e) {ipAddress = "Error";}
+
+            // ipAddress first 3 octets of IPv4 address
+            Settings.ipAddress = ipAddress.substring(0, ipAddress.lastIndexOf('.')+1);
+
+            /* Search through subnet to see if the default port is running a server */
+            for (int i = 1; i < 255; i++) {
+                final String ipAddr = Settings.ipAddress + i;
+                new UDPPacket(ipAddr, Settings.port, Settings.passwd, new Callback() {
+                    public void callback(boolean result, JSONObject obj) {
+                        String addr = Settings.ipAddress;
+                        boolean notFound = (addr.length() > 0) ? addr.charAt(addr.length() - 1) == '.' : false;
+                        if (result && notFound) {
+                            Settings.ipAddress = ipAddr;
+                            myItems.get(1).caption = Settings.ipAddress;
+                            notifyDataSetChanged();
+                            Toast.makeText(activity, "Found server",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }, false, 10).execute(null, "health");
+            }
+        }
+
+        Settings.port = PreferenceManager.getDefaultSharedPreferences(activity).
+                getInt("PORT", 28899);
+        Settings.passwd = PreferenceManager.getDefaultSharedPreferences(activity).
+                        getString("PASSWORD", "");
         Settings.audio = 1;
         Settings.subtitle = 1;
         Settings.audio_tracks = new ArrayList<String>();    Settings.audio_tracks.add("1");
         Settings.subtitle_tracks = new ArrayList<String>(); Settings.subtitle_tracks.add("1");
-
-        /* Search through subnet to see if the default port is running a server */
-        for (int i = 1; i < 255; i++) {
-            final String ipAddr = Settings.ipAddress + i;
-            new UDPPacket(ipAddr, Settings.port, Settings.passwd, new Callback() {
-                public void callback(boolean result, JSONObject obj) {
-                    String addr = Settings.ipAddress;
-                    boolean notFound = (addr.length() > 0) ? addr.charAt(addr.length() - 1) == '.' : false;
-                    if (result && notFound) {
-                        Settings.ipAddress = ipAddr;
-                        myItems.get(1).caption = Settings.ipAddress;
-                        notifyDataSetChanged();
-                        Toast.makeText(activity, "Found server",
-                            Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }, false, 10).execute(null, "health");
-        }
 
         /* Initialize list (Text, Hint, Focusable, InputType) */
         myItems.add( new ListItem(ListItem.TYPE.TEXT_VIEW,  null,                       "Settings",     InputType.TYPE_NULL) );
@@ -244,14 +254,17 @@ public class SettingsAdapter extends BaseAdapter {
         if (hint.equals(myItems.get(1).hint)) {
             // IP Address
             Settings.ipAddress = value;
+            PreferenceManager.getDefaultSharedPreferences(activity).edit().putString("IP", value).apply();
         }
         else if (hint.equals(myItems.get(2).hint)) {
             // Port
             Settings.port = value.matches("\\d+") ?  Integer.parseInt(value) : 0;
+            PreferenceManager.getDefaultSharedPreferences(activity).edit().putInt("PORT", Settings.port).apply();
         }
         else if (hint.equals(myItems.get(4).hint)) {
             // Password
             Settings.passwd = value;
+            PreferenceManager.getDefaultSharedPreferences(activity).edit().putString("PASSWORD", value).apply();
         }
     }
 
