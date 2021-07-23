@@ -209,6 +209,8 @@ public class MainActivity extends Activity {
     }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
+        PreferenceManager.getDefaultSharedPreferences(this).edit()
+            .putBoolean("SUBTITLES", button.isChecked()).apply();
         button.sendCommand("set_subtitles", "track", button.isChecked() ? Settings.subtitle : 0);
     }
     public void fullScreenButton(View view) {
