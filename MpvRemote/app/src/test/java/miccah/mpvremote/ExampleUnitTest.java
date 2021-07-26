@@ -1,4 +1,4 @@
-package miccah.laptopremote;
+package miccah.mpvremote;
 
 import org.junit.Test;
 
