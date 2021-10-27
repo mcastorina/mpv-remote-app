@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import sys
 import psutil
 import logging
 import argparse
@@ -8,6 +9,8 @@ import subprocess
 from .media_server import MediaServer
 from .media_controllers import MpvController
 from os.path import abspath, realpath, isdir, join
+if sys.platform == 'win32':
+    from .windows_monkeypatch import *
 
 name = "mpv_remote_app"
 
