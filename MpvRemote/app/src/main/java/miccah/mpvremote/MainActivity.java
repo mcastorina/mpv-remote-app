@@ -243,6 +243,9 @@ public class MainActivity extends Activity {
         BackgroundImageButton button = (BackgroundImageButton)view;
         button.sendCommand("pause", "state", !button.getState());
     }
+    public void stopButton(View view) {
+        sendCommand(null, "stop");
+    }
     public void subtitlesButton(View view) {
         BackgroundToggleButton button = (BackgroundToggleButton)view;
         PreferenceManager.getDefaultSharedPreferences(this).edit()
