@@ -2,13 +2,13 @@
 <android.support.v4.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <!-- The main content view -->
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <RelativeLayout
         android:id="@+id/activity_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,37 +18,50 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context="com.miccah.mpvremote.MainActivity">
 
-        <miccah.mpvremote.BackgroundImageButton
-            android:src="@android:drawable/ic_media_pause"
+        <LinearLayout
+            android:id="@+id/adapter"
+            android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:id="@+id/play_pause"
-            android:layout_marginBottom="92dp"
-            android:layout_width="128dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:onClick="playPauseButton" />
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="92dp"
+            android:orientation="horizontal">
 
-        <ImageButton
-            android:src="@android:drawable/ic_media_rew"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/play_pause"
-            android:layout_toLeftOf="@+id/play_pause"
-            android:id="@+id/rewind"
-            android:layout_alignTop="@+id/play_pause"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            <ImageButton
+                android:id="@+id/rewind"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:layout_weight="1"
+                android:src="@android:drawable/ic_media_rew" />
 
-        <ImageButton
-            android:src="@android:drawable/ic_media_ff"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/play_pause"
-            android:layout_toRightOf="@+id/play_pause"
-            android:id="@+id/fast_forward"
-            android:layout_alignBottom="@+id/play_pause"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            <miccah.mpvremote.BackgroundImageButton
+                android:id="@+id/play_pause"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="playPauseButton"
+                android:src="@android:drawable/ic_media_pause" />
+
+            <miccah.mpvremote.BackgroundImageButton
+                android:id="@+id/stop"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="stopButton"
+                android:src="@drawable/ic_media_stop" />
+
+            <ImageButton
+                android:id="@+id/fast_forward"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_weight="1"
+                android:src="@android:drawable/ic_media_ff" />
+
+        </LinearLayout>
 
         <SeekBar
             android:layout_width="wrap_content"
@@ -78,14 +91,13 @@
             android:checked="true" />
 
         <Button
-            android:text="Library"
+            android:id="@+id/library"
             android:layout_width="128dp"
             android:layout_height="64dp"
-            android:id="@+id/library"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="20dp"
             android:onClick="libraryButton"
-            android:layout_marginBottom="157dp"
-            android:layout_above="@+id/play_pause"
-            android:layout_centerHorizontal="true" />
+            android:text="Library" />
 
         <miccah.mpvremote.BackgroundImageButton
             android:src="@drawable/fullscreen"
