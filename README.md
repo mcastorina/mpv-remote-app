@@ -3,7 +3,7 @@ An Android application to control the [mpv media player](https://mpv.io/)
 running on a separate computer.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-main.png" width="336">
+<img src="https://raw.githubusercontent.com/marcopus/mpv-remote-app/master/screenshots/app-main.png" width="336">
 <img src="https://raw.githubusercontent.com/mcastorina/mpv-remote-app/master/screenshots/app-settings.png" width="336">
 </p>
 
