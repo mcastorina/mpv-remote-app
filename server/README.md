@@ -14,6 +14,7 @@ Source: [mcastorina/mpv-remote-app](https://github.com/mcastorina/mpv-remote-app
 * audio / subtitle selection
 * file browsing
 * automatically find server
+* NEW! play yt video streams from URL or search keywords
 
 ## Donate
 
