@@ -137,6 +137,20 @@ public class MainActivity extends Activity {
         ((BackgroundImageButton)findViewById(R.id.full_screen)).
             setDrawables(R.drawable.fullscreen,
                          R.drawable.fullscreen_exit);
+
+        /* Setup ytsearch callback */
+        EditText et = (EditText) findViewById(R.id.ytsearch);
+        et.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                    ytsearchEntered(et.getText().toString());
+                    return true;
+                }
+                return false;
+            }
+        });
+
     }
 
     @Override
@@ -241,6 +255,9 @@ public class MainActivity extends Activity {
     }
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(Settings.mDrawerList);
+    }
+    public void ytsearchEntered(String ytsearch) {
+        sendCommand(null, "play", "path", "ytdl://ytsearch:" + ytsearch);
     }
 
     private void sendCommand(Callback cb, String command, Object... pairs) {
