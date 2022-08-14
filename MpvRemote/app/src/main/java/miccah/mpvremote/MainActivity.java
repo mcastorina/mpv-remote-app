@@ -45,6 +45,17 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Get intent, action and MIME type
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                handleSendText(intent); // Handle text being sent
+            }
+        }
+
         BackgroundToggleButton subtitles = (miccah.mpvremote.BackgroundToggleButton)
                 findViewById(R.id.subtitles);
         subtitles.setChecked(PreferenceManager.getDefaultSharedPreferences(this)
@@ -151,6 +162,15 @@ public class MainActivity extends Activity {
             }
         });
 
+    }
+
+    void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            EditText et = (EditText) findViewById(R.id.ytsearch);
+            et.setText(sharedText);
+            ytsearchEntered(sharedText);
+        }
     }
 
     @Override
