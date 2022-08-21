@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="mpv_remote_app",
-    version="0.0.4",
+    version="0.0.5",
     author="miccah",
     author_email="m.castorina93@gmail.com",
     description="Server for the Android application",
