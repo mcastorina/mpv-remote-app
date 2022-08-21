@@ -17,6 +17,7 @@ running on a separate computer.
 * audio / subtitle selection
 * file browsing
 * automatically find server
+* NEW! play yt video streams from URL or search keywords
 
 ## How it Works
 `mpv` has an option `--input-ipc-server` which allows you to control

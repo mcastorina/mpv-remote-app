@@ -45,6 +45,17 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Get intent, action and MIME type
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                handleSendText(intent); // Handle text being sent
+            }
+        }
+
         BackgroundToggleButton subtitles = (miccah.mpvremote.BackgroundToggleButton)
                 findViewById(R.id.subtitles);
         subtitles.setChecked(PreferenceManager.getDefaultSharedPreferences(this)
@@ -137,6 +148,29 @@ public class MainActivity extends Activity {
         ((BackgroundImageButton)findViewById(R.id.full_screen)).
             setDrawables(R.drawable.fullscreen,
                          R.drawable.fullscreen_exit);
+
+        /* Setup ytsearch callback */
+        EditText et = (EditText) findViewById(R.id.ytsearch);
+        et.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                    ytsearchEntered(et.getText().toString());
+                    return true;
+                }
+                return false;
+            }
+        });
+
+    }
+
+    void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            EditText et = (EditText) findViewById(R.id.ytsearch);
+            et.setText(sharedText);
+            ytsearchEntered(sharedText);
+        }
     }
 
     @Override
@@ -241,6 +275,9 @@ public class MainActivity extends Activity {
     }
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(Settings.mDrawerList);
+    }
+    public void ytsearchEntered(String ytsearch) {
+        sendCommand(null, "play", "path", "ytdl://ytsearch:" + ytsearch);
     }
 
     private void sendCommand(Callback cb, String command, Object... pairs) {

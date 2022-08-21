@@ -109,6 +109,15 @@
             android:src="@drawable/menu"
             android:onClick="settingsButton" />
 
+        <EditText
+            android:id="@+id/ytsearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/settings"
+            android:ems="10"
+            android:hint="ytsearch"
+            android:inputType="text" />
+
     </RelativeLayout>
 
     <!-- The navigation drawer -->

@@ -148,12 +148,12 @@ class MediaServer:
             ret, msg = False, None
             if command == "play":
                 path = join(self.root, cmd["path"])
-                if path[:len(self.root)] != self.root:
-                    # outside of root
-                    ret, msg = False, "Path out of bounds"
-                elif not isfile(path):
-                    # not a file
-                    ret, msg  = False, "%s is not a file" % cmd["path"]
+                if not isfile(path):
+                    # not a file, perhaps a URI
+                    if cmd["path"].startswith("ytdl://"):
+                        ret = self.controller.play(cmd["path"])
+                    else:
+                        ret, msg  = False, "%s is neither a file nor a valid URI" % cmd["path"]
                 else:
                     # play the file
                     ret = self.controller.play(abspath(realpath(path)))
