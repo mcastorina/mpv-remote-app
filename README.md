@@ -85,3 +85,10 @@ mpv-remote-app p4ssw0rd
 * Android (android-tools)
 * Python 3
   * psutil
+
+## Contributors
+Thank you to all who have contributed!
+
+<a href="https://github.com/mcastorina/mpv-remote-app/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mcastorina/mpv-remote-app" />
+</a>
