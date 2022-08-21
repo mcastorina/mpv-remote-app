@@ -9,7 +9,7 @@ running on a separate computer.
 
 ## Features
 
-* play / pause
+* play / pause / stop
 * fast forward / rewind
 * volume slider
 * fullscreen

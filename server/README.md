@@ -6,7 +6,7 @@ Source: [mcastorina/mpv-remote-app](https://github.com/mcastorina/mpv-remote-app
 
 ## Features
 
-* play / pause
+* play / pause / stop
 * fast forward / rewind
 * volume slider
 * fullscreen
