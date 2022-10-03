@@ -147,16 +147,12 @@ class MediaServer:
             # ret / msg will get changed by following cases
             ret, msg = False, None
             if command == "play":
-                path = join(self.root, cmd["path"])
-                if not isfile(path):
-                    # not a file, perhaps a URI
-                    if cmd["path"].startswith("ytdl://"):
-                        ret = self.controller.play(cmd["path"])
-                    else:
-                        ret, msg  = False, "%s is neither a file nor a valid URI" % cmd["path"]
+                if isfile(join(self.root, cmd["path"])):
+                    path = abspath(realpath(join(self.root, cmd["path"])))
                 else:
-                    # play the file
-                    ret = self.controller.play(abspath(realpath(path)))
+                    path = cmd["path"]
+                # play the file
+                ret = self.controller.play(path)
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
             elif command == "stop":
