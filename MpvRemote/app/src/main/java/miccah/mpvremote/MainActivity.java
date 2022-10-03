@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.URLUtil;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.LinearLayout;
@@ -155,7 +156,7 @@ public class MainActivity extends Activity {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-                    ytsearchEntered(et.getText().toString());
+                    sendCommand(null, "play", "path", et.getText().toString());
                     return true;
                 }
                 return false;
@@ -167,9 +168,13 @@ public class MainActivity extends Activity {
     void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
         if (sharedText != null) {
-            EditText et = (EditText) findViewById(R.id.ytsearch);
-            et.setText(sharedText);
-            ytsearchEntered(sharedText);
+            // send valid url straight to server, or prepend ytdl://ytsearch for guess-searching
+            if (!URLUtil.isValidUrl(sharedText)) {
+                EditText et = (EditText) findViewById(R.id.ytsearch);
+                et.setText(sharedText);
+                sharedText = "ytdl://ytsearch:" + sharedText;
+            }
+            sendCommand(null, "play", "path", sharedText);
         }
     }
 
@@ -279,10 +284,6 @@ public class MainActivity extends Activity {
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(Settings.mDrawerList);
     }
-    public void ytsearchEntered(String ytsearch) {
-        sendCommand(null, "play", "path", "ytdl://ytsearch:" + ytsearch);
-    }
-
     private void sendCommand(Callback cb, String command, Object... pairs) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
