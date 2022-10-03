@@ -147,9 +147,11 @@ class MediaServer:
             # ret / msg will get changed by following cases
             ret, msg = False, None
             if command == "play":
-                if isfile(path := join(self.root, cmd["path"])):
-                    path = abspath(realpath(path))
-                # play the file
+                if not isfile(
+                    path := abspath(realpath(join(self.root, cmd["path"])))
+                ):
+                    path = cmd["path"]
+                # play the path
                 ret = self.controller.play(path)
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
