@@ -6,6 +6,7 @@ import signal
 import socket
 import logging
 import threading
+import validators
 from hashlib import md5
 from .media_controllers import *
 from collections import OrderedDict
@@ -147,12 +148,16 @@ class MediaServer:
             # ret / msg will get changed by following cases
             ret, msg = False, None
             if command == "play":
-                if not isfile(
-                    path := abspath(realpath(join(self.root, cmd["path"])))
+                if validators.url(
+                    path := cmd["path"].strip()
                 ):
-                    path = cmd["path"]
-                # play the path
-                ret = self.controller.play(path)
+                    ret = self.controller.play(path)
+                elif isfile(
+                    path := join(self.root, cmd["path"])
+                ):
+                    ret = self.controller.play(abspath(realpath(path)))
+                else:
+                    ret = self.controller.play("ytdl://ytsearch:" + cmd["path"])
             elif command == "pause":
                 ret = self.controller.pause(cmd["state"])
             elif command == "stop":
