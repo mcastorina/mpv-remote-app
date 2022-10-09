@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.URLUtil;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.LinearLayout;
@@ -168,12 +167,7 @@ public class MainActivity extends Activity {
     void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
         if (sharedText != null) {
-            // send valid url straight to server, or prepend ytdl://ytsearch for guess-searching
-            if (!URLUtil.isValidUrl(sharedText)) {
-                EditText et = (EditText) findViewById(R.id.ytsearch);
-                et.setText(sharedText);
-                sharedText = "ytdl://ytsearch:" + sharedText;
-            }
+            // send shared data straight to the server
             sendCommand(null, "play", "path", sharedText);
         }
     }
