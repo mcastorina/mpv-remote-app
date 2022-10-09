@@ -16,6 +16,7 @@ setuptools.setup(
     python_requires='>=3',
     install_requires=[
         "psutil",
+        "validators",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
