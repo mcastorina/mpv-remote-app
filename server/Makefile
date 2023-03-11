@@ -1,25 +1,37 @@
-PROJECT = mpv_remote_app
-PYTHON  = python3
+SRC      = mpv_remote_app
+PY_FILES = $(shell find $(SRC) -type f -name '*.py')
+PYTHON   = python3
+PKG      = mpv-remote-app
 
-all: build
+.DEFAULT_GOAL := build
 
-build: setup.py $(PROJECT)
+.PHONY: build
+build: dist
 	$(PYTHON) setup.py sdist bdist_wheel
-test: $(PROJECT)
+
+dist: setup.py $(PY_FILES)
+	$(PYTHON) -m build
+
+.PHONY: test
+test: $(PY_FILES)
 	$(PYTHON) -m unittest discover tests
 
+.PHONY: install
 install: build
-	sudo $(PYTHON) setup.py install --record .install-files
-uninstall: setup.py .install-files
-	cat .install-files | xargs sudo rm -rf
-	rm -f .install-files
+	$(PYTHON) -m pip install .
 
+.PHONY: uninstall
+uninstall: setup.py
+	$(PYTHON) -m pip uninstall $(PKG)
+
+.PHONY: push
 push: dist
-	twine upload dist/*
+	$(PYTHON) -m twine upload dist/*
+
+.PHONY: push-test
 push-test: dist
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	$(PYTHON) -m twine upload --repository testpypi dist/*
 
+.PHONY: clean
 clean:
-	rm -rf build dist *.egg-info $(PROJECT)/*.pyc
-
-.phony: build push clean
+	rm -rf build dist $(SRC)/*.egg-info $(SRC)/*.pyc

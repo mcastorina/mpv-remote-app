@@ -3,7 +3,7 @@
 GRADLE_BIN := ./gradlew
 APK_DIR := app/build/outputs/apk
 SRC_DIR := app/src/main
-TARGET := $(APK_DIR)/app-debug.apk
+TARGET := $(APK_DIR)/debug/app-debug.apk
 
 SOURCES := $(shell find $(SRC_DIR) -type f)
 PACKAGE := $(shell cat $(SRC_DIR)/AndroidManifest.xml | grep 'package=' | awk -F '"' '{print $$2}')

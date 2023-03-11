@@ -80,12 +80,15 @@ mpv-remote-app p4ssw0rd
 3. Fill in the password to the password specified on the command line (e.g. `p4ssw0rd`)
 4. Browse and play!
 
-## Motivation
-A learning experience writing Android applications and to avoid getting
-up to control the movie I am watching.
-
 ## Dependencies
 
 * Android (android-tools)
 * Python 3
   * psutil
+
+## Contributors
+Thank you to all who have contributed!
+
+<a href="https://github.com/mcastorina/mpv-remote-app/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=mcastorina/mpv-remote-app" />
+</a>
