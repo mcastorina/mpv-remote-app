@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="mpv_remote_app",
-    version="0.0.5",
+    version="0.0.6",
     author="miccah",
     author_email="m.castorina93@gmail.com",
     description="Server for the Android application",
@@ -13,9 +13,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mcastorina/mpv-remote-app",
     packages=setuptools.find_packages(),
-    python_requires='>=3',
+    python_requires=">=3",
     install_requires=[
         "psutil",
+        "validators",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -23,8 +24,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     entry_points={
-        'console_scripts': [
-            'mpv-remote-app=mpv_remote_app:main',
+        "console_scripts": [
+            "mpv-remote-app=mpv_remote_app:main",
         ],
     },
 )
