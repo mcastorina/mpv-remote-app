@@ -14,7 +14,7 @@ class TestMediaServer(unittest.TestCase):
         # start server
         cls.server_password = 'test'
         cls.server_root = 'tests/root'
-        cls.server = MediaServer(12345, cls.server_password, cls.server_root)
+        cls.server = MediaServer(12345, '127.0.0.1', cls.server_password, cls.server_root)
         cls.server.run(daemon=True)
     @classmethod
     def tearDownClass(cls):
