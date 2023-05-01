@@ -6,11 +6,8 @@ PKG      = mpv-remote-app
 .DEFAULT_GOAL := build
 
 .PHONY: build
-build: dist
+build: setup.py $(PY_FILES)
 	$(PYTHON) setup.py sdist bdist_wheel
-
-dist: setup.py $(PY_FILES)
-	$(PYTHON) -m build
 
 .PHONY: test
 test: $(PY_FILES)
