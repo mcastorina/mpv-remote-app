@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-                    ytsearchEntered(et.getText().toString());
+                    sendCommand(null, "play", "path", et.getText().toString());
                     return true;
                 }
                 return false;
@@ -167,9 +167,8 @@ public class MainActivity extends Activity {
     void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
         if (sharedText != null) {
-            EditText et = (EditText) findViewById(R.id.ytsearch);
-            et.setText(sharedText);
-            ytsearchEntered(sharedText);
+            // send shared data straight to the server
+            sendCommand(null, "play", "path", sharedText);
         }
     }
 
@@ -279,10 +278,6 @@ public class MainActivity extends Activity {
     public void settingsButton(View view) {
         mDrawerLayout.openDrawer(Settings.mDrawerList);
     }
-    public void ytsearchEntered(String ytsearch) {
-        sendCommand(null, "play", "path", "ytdl://ytsearch:" + ytsearch);
-    }
-
     private void sendCommand(Callback cb, String command, Object... pairs) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("command", command);
